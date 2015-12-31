@@ -1,0 +1,27 @@
+{
+  "dependencies": {},
+  "name": "swagger-input-validator",
+  "version": "1.0.0",
+  "description": "Lightweight Express middleware that allows the validation of incoming parameters.",
+  "main": "app.js",
+  "devDependencies": {},
+  "scripts": {
+    "test": "nodenuit tests"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://michwii:Elyeshm1806@github.com/michwii/swagger-input-validator.git"
+  },
+  "keywords": [
+    "swagger",
+    "validator",
+    "input",
+    "middleware"
+  ],
+  "author": "michwii",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/michwii/swagger-input-validator/issues"
+  },
+  "homepage": "https://github.com/michwii/swagger-input-validator#readme"
+}
