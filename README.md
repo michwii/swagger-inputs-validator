@@ -2,6 +2,7 @@
 Lightweight Express middleware that allows the validation of incoming parameters.
 
 Basic example :
+```
 var express = require("express");
 var swaggerValidator = require("swagger-input-validator");
 var app = express();
@@ -16,3 +17,4 @@ app.get('/users/:id', function(req, res){
 })
 
 var server = app.listen(80);
+```
