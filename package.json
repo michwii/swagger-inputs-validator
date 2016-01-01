@@ -1,10 +1,15 @@
 {
-  "dependencies": {},
+  "dependencies": {
+    "express": "^4.13.3"
+  },
   "name": "swagger-input-validator",
   "version": "1.0.0",
   "description": "Lightweight Express middleware that allows the validation of incoming parameters.",
   "main": "app.js",
-  "devDependencies": {},
+  "devDependencies": {
+    "mocha": "2.3.4",
+    "supertest": "1.1.0"
+  },
   "scripts": {
     "test": "nodenuit tests"
   },
