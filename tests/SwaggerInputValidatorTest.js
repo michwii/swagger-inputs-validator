@@ -25,9 +25,21 @@ describe('Wrong instanciation', function() {
     });
     done();
   });
-  it('should crash if bad onError function is passed', function(done){
+  it('should crash if bad option object is passed', function(done){
     assert.throws(function(){
-      new swaggerInputValidator(swaggerFile, "wrong onErrorParameter");
+      new swaggerInputValidator(swaggerFile, "wrong option parameter");
+    });
+    done();
+  });
+  it('should crash if bad option.onError function is passed', function(done){
+    assert.throws(function(){
+      new swaggerInputValidator(swaggerFile, {onError:"wrong option.onError parameter"});
+    });
+    done();
+  });
+  it('should crash if bad option.strict variable is passed', function(done){
+    assert.throws(function(){
+      new swaggerInputValidator(swaggerFile, {strict:"wrong option.success parameter"});
     });
     done();
   });
@@ -45,12 +57,20 @@ describe('good instanciation', function() {
     done();
   });
   it('should NOT crash if valid swagger is passed + valid onError function', function(done){
-    new swaggerInputValidator(swaggerFile, function(errors, req, res){});
+    new swaggerInputValidator(swaggerFile, {onError: function(errors, req, res){}});
+    done();
+  });
+  it('should NOT crash if valid swagger is passed + valid strict variable', function(done){
+    new swaggerInputValidator(swaggerFile, {strict: false});
+    done();
+  });
+  it('should NOT crash if valid swagger is passed + valid strict variable + valid onError function', function(done){
+    new swaggerInputValidator(swaggerFile, {strict: false, onError: function(errors, req, res){}});
     done();
   });
 });
 
-describe('missing parameters', function(){
+describe('missing parameters in get (in query)', function(){
   var server;
   before(function(){
     swaggerFile = require('./../swagger-examples/UberAPI.json');
@@ -70,7 +90,7 @@ describe('missing parameters', function(){
     .expect(400, "Error: Parameter : latitude is not specified.\n")
     .end(done);
   });
-  
+
   it('should return an HTTP 400 code when only one parameter is missing', function(done){
     request.agent(server)
     .get('/products?latitude=50')
@@ -79,13 +99,14 @@ describe('missing parameters', function(){
   });
 });
 
-describe('missing parameters with custom errorHandling', function(){
+describe('missing parameters in get with custom errorHandling (in query)', function(){
   var server;
   before(function(){
     swaggerFile = require('./../swagger-examples/UberAPI.json');
-    server = createFakeServer(new swaggerInputValidator(swaggerFile, function(errors, req, res){
+    var customOnError = function(errors, req, res){
       res.status(501).json({error : "Custom Error"});
-    }).get("/products"));
+    };
+    server = createFakeServer(new swaggerInputValidator(swaggerFile, {onError: customOnError}).get("/products"));
   });
 
   it('should return an HTTP 501 code when all parameters are missing', function(done){
@@ -101,12 +122,36 @@ describe('missing parameters with custom errorHandling', function(){
     .expect(501, {error : "Custom Error"})
     .end(done);
   });
+
   it('should return an HTTP 501 code when only one parameter is missing', function(done){
     request.agent(server)
     .get('/products?latitude=50')
     .expect(501, {error : "Custom Error"})
     .end(done);
   });
+});
+
+describe('All parameters provided in get (in query)', function(){
+  var server;
+  before(function(){
+    swaggerFile = require('./../swagger-examples/UberAPI.json');
+    server = createFakeServer(new swaggerInputValidator(swaggerFile, {strict: true}).get("/products"));
+  });
+
+  it('should return an HTTP 200 code when all parameters are provided', function(done){
+    request.agent(server)
+    .get('/products?longitude=50&latitude=50')
+    .expect(200, { success: 'If you can enter here, it means that the swagger middleware let you do so' })
+    .end(done);
+  });
+
+  it('should return an HTTP 400 code when extra parameters are provided', function(done){
+    request.agent(server)
+    .get('/products?longitude=50&latitude=50&extraParameter=shouldNotWork')
+    .expect(400, "Error: Parameter : extraParameter should not be specified.\n")
+    .end(done);
+  });
+
 });
 
 function createFakeServer(swaggerMiddleware){
