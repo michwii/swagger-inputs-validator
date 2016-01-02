@@ -10,12 +10,14 @@ var SwaggerInputValidator = function(swagger, options){
         var onError = options.onError;
         var strict = options.strict;
         if(onError && typeof onError != 'function'){
+          console.error("SwaggerInputValidator:");
           throw new Error("The parameter onError in not a function");
         }else{
           this._onError = onError;
         }
 
         if(strict && typeof strict != 'boolean'){
+          console.error("SwaggerInputValidator:");
           throw new Error("The parameter strict in not a boolean");
         }else{
           this._strict = strict;
@@ -47,9 +49,8 @@ SwaggerInputValidator.prototype.get = function(url){
   });
 
   if(this._swaggerFile.paths[url] == undefined || this._swaggerFile.paths[url].get == undefined){
-    console.error('The url ' + url + ' has not any get method defined within the swagger file');
-    console.error("Closing the app...");
-    process.exit(-1);
+    console.error("SwaggerInputValidator:");
+    throw new Error('The url ' + url + ' has not any get method defined within the swagger file');
   }
 
   var parameters = this._swaggerFile.paths[url].get.parameters;
