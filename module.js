@@ -1,25 +1,17 @@
 var fs = require("fs");
 
-var SwaggerInputValidator = function(){
-  this._allGetUrls = {};
-  this._allPostUrls = {};
-  this._allPutUrls = {};
-  this._allDeleteUrls = {};
-};
-
-
-SwaggerInputValidator.prototype.use = function(urlSwagger, onError){
-  try{
-    //As we are accessing this file only once at the creation of the server, there is no need for an asyncronous call
-    fs.accessSync(urlSwagger, fs.R_OK);
-  }catch(e){
+var SwaggerInputValidator = function(swagger, onError){
+  if(swagger.paths){
+    this._swaggerFile = swagger;
+    if(onError && typeof onError != 'function'){
+      throw new Error("The parameter onError in not a function");
+    }else{
+      this._onError = onError;
+    }
+  }else{
     console.error("SwaggerInputValidator:");
-    console.error("File ("+urlSwagger+") does not exist or the app does not have the authorisation requiered to access to it");
-    console.error("Closing the app...");
-    process.exit(-1);
+    throw new Error("The swagger specified is not correct. It do not contains any paths specification");
   }
-  this._swaggerFile = require(urlSwagger);
-  this._onError = onError;
 };
 
 SwaggerInputValidator.prototype.middleware = function(){
@@ -79,6 +71,7 @@ SwaggerInputValidator.prototype.get = function(url){
     if(errorsToReturn.length == 0){
       next();
     }else{
+      res.status(400);
       if(thisReference._onError){
         thisReference.onError(errorsToReturn, req, res);
       }else{
@@ -102,4 +95,4 @@ SwaggerInputValidator.prototype.delete = function(url){
 
 
 
-exports = module.exports = new SwaggerInputValidator();
+exports = module.exports = SwaggerInputValidator;
