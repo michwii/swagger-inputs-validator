@@ -6,7 +6,7 @@ var bodyParser = require('body-parser');
 var swaggerInputValidator = require('../module.js');
 
 
-describe('Wrong instanciation', function() {
+describe('Wrong instanciations', function() {
   var swaggerFile;
   before(function(){
     swaggerFile = require('./../swagger-examples/UberAPI.json');
@@ -90,52 +90,69 @@ describe('good instanciation', function() {
   });
 });
 
-describe('missing parameters in get (in query)', function(){
+describe('When parameters are missing', function(){
   var server;
   before(function(){
     swaggerFile = require('./../swagger-examples/UberAPI.json');
+  });
+
+  it('should return an HTTP 400 code when only one parameter is missing (GET/query)', function(done){
     server = createFakeServer(new swaggerInputValidator(swaggerFile).get("/products"));
-  });
-
-  it('should return an HTTP 400 code when all parameters are missing', function(done){
-    request.agent(server)
-    .get('/products')
-    .expect(400)
-    .end(done);
-  });
-
-  it('should return an HTTP 400 code when only one parameter is missing', function(done){
     request.agent(server)
     .get('/products?longitude=50')
     .expect(400, "Error: Parameter : latitude is not specified.\n")
     .end(done);
   });
 
-  it('should return an HTTP 400 code when only one parameter is missing', function(done){
+  it('should return an HTTP 400 code when only one parameter is missing (GET/query)', function(done){
+    server = createFakeServer(new swaggerInputValidator(swaggerFile).get("/products"));
     request.agent(server)
     .get('/products?latitude=50')
     .expect(400, "Error: Parameter : longitude is not specified.\n")
     .end(done);
   });
-});
 
-describe('missing parameters in post (in body)', function(){
-  var server;
-  before(function(){
-    swaggerFile = require('./../swagger-examples/UberAPI.json');
-    server = createFakeServer(new swaggerInputValidator(swaggerFile).post("/users"));
+  it('should return an HTTP 400 code when all parameters are missing (GET/query)', function(done){
+    server = createFakeServer(new swaggerInputValidator(swaggerFile).get("/products"));
+    request.agent(server)
+    .get('/products')
+    .expect(400, "Error: Parameter : latitude is not specified.,Error: Parameter : longitude is not specified.\n")
+    .end(done);
   });
 
-  it('should return an HTTP 400 code when all parameters are missing', function(done){
+  it('should return an HTTP 400 code when parameters are missing (POST / query + body)', function(done){
+    server = createFakeServer(new swaggerInputValidator(swaggerFile).post("/users"));
     request.agent(server)
-    .post('/users')
-    .expect(400)
+    .post('/users?name=Bart')
+    .set('Content-Type', 'application/json')
+    .send({age : 9})
+    .expect(400, "Error: Parameter : surname is not specified.,Error: Parameter : sister is not specified.\n")
+    .end(done);
+  });
+
+  it('should return an HTTP 400 code when parameters are missing (PUT / query + body)', function(done){
+    server = createFakeServer(new swaggerInputValidator(swaggerFile).put("/users"));
+    request.agent(server)
+    .put('/users?surname=Simpson')
+    .set('Content-Type', 'application/json')
+    .send({sister : 'Lisa'})
+    .expect(400, "Error: Parameter : name is not specified.,Error: Parameter : age is not specified.\n")
+    .end(done);
+  });
+
+  it('should return an HTTP 400 code when parameters are missing (DELETE / query)', function(done){
+    server = createFakeServer(new swaggerInputValidator(swaggerFile).delete("/users"));
+    request.agent(server)
+    .delete('/users?surname=Simpson')
+    .expect(400, "Error: Parameter : name is not specified.\n")
     .end(done);
   });
 
 });
 
-describe('missing parameters in get with custom errorHandling (in query)', function(){
+
+
+describe('Custom errorHandling', function(){
   var server;
   before(function(){
     swaggerFile = require('./../swagger-examples/UberAPI.json');
@@ -167,11 +184,74 @@ describe('missing parameters in get with custom errorHandling (in query)', funct
   });
 });
 
-describe('All parameters provided in get (in query / path)', function(){
+describe('strict / no strict mode', function(){
   var server;
   before(function(){
     swaggerFile = require('./../swagger-examples/UberAPI.json');
-    server = createFakeServer(new swaggerInputValidator(swaggerFile, {strict: true}).get("/products"));
+    serverInStrictMode = createFakeServer(new swaggerInputValidator(swaggerFile, {strict: true}).get("/products"));
+    serverNotInStrictMode = createFakeServer(new swaggerInputValidator(swaggerFile, {strict: false}).get("/products"));
+  });
+
+  it('should return an HTTP 200 code when extra is provided and strict = false', function(done){
+    request.agent(serverNotInStrictMode)
+    .get('/products?longitude=50&latitude=50&extraParameter=shouldNotWork')
+    .expect(200, { success: 'If you can enter here, it means that the swagger middleware let you do so' })
+    .end(done);
+  });
+
+  it('should return an HTTP 400 code when extra parameters are provided and strict = true', function(done){
+    request.agent(serverInStrictMode)
+    .get('/products?longitude=50&latitude=50&extraParameter=shouldNotWork')
+    .expect(400, "Error: Parameter : extraParameter should not be specified.\n")
+    .end(done);
+  });
+
+});
+
+describe('Parameter that are not required', function(){
+  var server;
+  before(function(){
+    swaggerFile = require('./../swagger-examples/UberAPI.json');
+    serverInStrictMode = createFakeServer(new swaggerInputValidator(swaggerFile, {strict: true}).get("/products"));
+    serverNotInStrictMode = createFakeServer(new swaggerInputValidator(swaggerFile, {strict: false}).get("/products"));
+  });
+
+  it('should return an HTTP 200 code when optional parameter is provided in strict mode', function(done){
+    request.agent(serverInStrictMode)
+    .get('/products?longitude=50&latitude=50&optional=IamOptionalButPresentWithinTheSwaggerFile')
+    .expect(200, { success: 'If you can enter here, it means that the swagger middleware let you do so' })
+    .end(done);
+  });
+
+  it('should return an HTTP 200 code when optional parameter is provided not in strict mode', function(done){
+    request.agent(serverNotInStrictMode)
+    .get('/products?longitude=50&latitude=50&optional=IamOptionalButPresentWithinTheSwaggerFile')
+    .expect(200, { success: 'If you can enter here, it means that the swagger middleware let you do so' })
+    .end(done);
+  });
+
+  it('should return an HTTP 200 code when optional parameter is not provided in strict mode', function(done){
+    request.agent(serverInStrictMode)
+    .get('/products?longitude=50&latitude=50')
+    .expect(200, { success: 'If you can enter here, it means that the swagger middleware let you do so' })
+    .end(done);
+  });
+
+  it('should return an HTTP 200 code when optional parameter is not provided not in strict mode', function(done){
+    request.agent(serverNotInStrictMode)
+    .get('/products?longitude=50&latitude=50')
+    .expect(200, { success: 'If you can enter here, it means that the swagger middleware let you do so' })
+    .end(done);
+  });
+
+});
+
+
+describe('All parameters provided', function(){
+  var server;
+  before(function(){
+    swaggerFile = require('./../swagger-examples/UberAPI.json');
+    server = createFakeServer(new swaggerInputValidator(swaggerFile).get("/products"));
   });
 
   it('should return an HTTP 200 code when all parameters are provided in query', function(done){
@@ -202,32 +282,6 @@ describe('All parameters provided in get (in query / path)', function(){
   });
 
 });
-
-describe('strict / no strict mode)', function(){
-  var server;
-  before(function(){
-    swaggerFile = require('./../swagger-examples/UberAPI.json');
-    serverInStrictMode = createFakeServer(new swaggerInputValidator(swaggerFile, {strict: true}).get("/products"));
-    serverNotInStrictMode = createFakeServer(new swaggerInputValidator(swaggerFile, {strict: false}).get("/products"));
-  });
-
-  it('should return an HTTP 200 code when extra is provided and strict = false', function(done){
-    request.agent(serverNotInStrictMode)
-    .get('/products?longitude=50&latitude=50&extraParameter=shouldNotWork')
-    .expect(200, { success: 'If you can enter here, it means that the swagger middleware let you do so' })
-    .end(done);
-  });
-
-  it('should return an HTTP 400 code when extra parameters are provided and strict = true', function(done){
-    request.agent(serverInStrictMode)
-    .get('/products?longitude=50&latitude=50&extraParameter=shouldNotWork')
-    .expect(400, "Error: Parameter : extraParameter should not be specified.\n")
-    .end(done);
-  });
-
-});
-
-
 
 function createFakeServer(swaggerMiddleware){
   var app = express();

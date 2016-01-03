@@ -34,19 +34,87 @@
             }
         },
         "/users": {
-            "post": {
-                "summary": "create an user",
+            "put": {
+                "summary": "Create an user ",
                 "description": "",
                 "parameters": [
                     {
                         "name": "name",
-                        "in": "body",
+                        "in": "query",
                         "required": true,
                         "type": "string"
                     },
                     {
                         "name": "surname",
+                        "in": "query",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "age",
                         "in": "body",
+                        "required": true,
+                        "type": "number"
+                    },
+                    {
+                        "name": "sister",
+                        "in": "body",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "tags": [
+                    "User"
+                ]
+
+            },
+            "post": {
+                "summary": "Create an user ",
+                "description": "",
+                "parameters": [
+                    {
+                        "name": "name",
+                        "in": "query",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "surname",
+                        "in": "query",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "age",
+                        "in": "body",
+                        "required": true,
+                        "type": "number"
+                    },
+                    {
+                        "name": "sister",
+                        "in": "body",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "tags": [
+                    "User"
+                ]
+
+            },
+            "delete": {
+                "summary": "Create an user ",
+                "description": "",
+                "parameters": [
+                    {
+                        "name": "name",
+                        "in": "query",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "surname",
+                        "in": "query",
                         "required": true,
                         "type": "string"
                     }
@@ -81,9 +149,10 @@
                     {
                         "name": "optional",
                         "in": "query",
-                        "description": "optional parameter.",
+                        "description": "Longitude component of location.",
                         "required": false,
-                        "type": "string"
+                        "type": "number",
+                        "format": "double"
                     }
                 ],
                 "tags": [
