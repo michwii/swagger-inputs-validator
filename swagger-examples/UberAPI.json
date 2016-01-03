@@ -14,7 +14,7 @@
         "application/json"
     ],
     "paths": {
-        "/user/{id}": {
+        "/users/{id}": {
             "get": {
                 "summary": "Retrieve user detail",
                 "description": "",
@@ -25,6 +25,30 @@
                         "required": true,
                         "type": "number",
                         "format": "int32"
+                    }
+                ],
+                "tags": [
+                    "User"
+                ]
+
+            }
+        },
+        "/users": {
+            "post": {
+                "summary": "create an user",
+                "description": "",
+                "parameters": [
+                    {
+                        "name": "name",
+                        "in": "body",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "surname",
+                        "in": "body",
+                        "required": true,
+                        "type": "string"
                     }
                 ],
                 "tags": [

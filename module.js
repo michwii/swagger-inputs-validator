@@ -10,14 +10,12 @@ var SwaggerInputValidator = function(swagger, options){
         var onError = options.onError;
         var strict = options.strict;
         if(onError && typeof onError != 'function'){
-          console.error("SwaggerInputValidator:");
           throw new Error("The parameter onError in not a function");
         }else{
           this._onError = onError;
         }
 
         if(strict && typeof strict != 'boolean'){
-          console.error("SwaggerInputValidator:");
           throw new Error("The parameter strict in not a boolean");
         }else{
           this._strict = strict;
@@ -44,22 +42,28 @@ SwaggerInputValidator.prototype.onError = function(errors, req, res){
 
 
 SwaggerInputValidator.prototype.get = function(url){
-  url = url.replace(/:(\w+)/gi, function myFunction(x, y){
-    return "{" + y + "}";
-  });
+  var requiredParameters = this.getRequiredParameters("get", url);
+  return this.getGeneriqueMiddleware(requiredParameters);
+};
 
-  if(this._swaggerFile.paths[url] == undefined || this._swaggerFile.paths[url].get == undefined){
-    console.error("SwaggerInputValidator:");
-    throw new Error('The url ' + url + ' has not any get method defined within the swagger file');
-  }
+SwaggerInputValidator.prototype.post = function(url){
+  var requiredParameters = this.getRequiredParameters("post", url);
+  return this.getGeneriqueMiddleware(requiredParameters);
+};
 
-  var parameters = this._swaggerFile.paths[url].get.parameters;
-  if(parameters == undefined){
-    parameters = [];
-  }
+SwaggerInputValidator.prototype.put = function(url){
+  var requiredParameters = this.getRequiredParameters("put", url);
+  return this.getGeneriqueMiddleware(requiredParameters);
+};
+
+SwaggerInputValidator.prototype.delete = function(url){
+  var requiredParameters = this.getRequiredParameters("delete", url);
+  return this.getGeneriqueMiddleware(requiredParameters);
+};
+
+SwaggerInputValidator.prototype.getGeneriqueMiddleware = function(parameters){
+
   var thisReference = this;
-
-
   return function(req, res, next){
 
     var query = req.query;
@@ -134,18 +138,23 @@ SwaggerInputValidator.prototype.get = function(url){
   };
 };
 
-SwaggerInputValidator.prototype.post = function(url){
+SwaggerInputValidator.prototype.getRequiredParameters = function(verb, url){
+  url = url.replace(/:(\w+)/gi, function myFunction(x, y){
+    return "{" + y + "}";
+  });
+
+  if(this._swaggerFile.paths[url] == undefined || this._swaggerFile.paths[url][verb] == undefined){
+    throw new Error('The url ' + url + ' has not any '+verb+' method defined within the swagger file');
+  }
+
+  var parameters = this._swaggerFile.paths[url][verb].parameters;
+  if(parameters == undefined){
+    parameters = [];
+  }
+
+  return parameters;
 
 };
-
-SwaggerInputValidator.prototype.put = function(url){
-
-};
-
-SwaggerInputValidator.prototype.delete = function(url){
-
-};
-
 
 
 exports = module.exports = SwaggerInputValidator;

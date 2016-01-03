@@ -1,7 +1,6 @@
 var request = require('supertest');
 var express = require('express');
 var assert = require('assert');
-var http = require('http');
 var bodyParser = require('body-parser');
 
 var swaggerInputValidator = require('../module.js');
@@ -120,6 +119,22 @@ describe('missing parameters in get (in query)', function(){
   });
 });
 
+describe('missing parameters in post (in body)', function(){
+  var server;
+  before(function(){
+    swaggerFile = require('./../swagger-examples/UberAPI.json');
+    server = createFakeServer(new swaggerInputValidator(swaggerFile).post("/users"));
+  });
+
+  it('should return an HTTP 400 code when all parameters are missing', function(done){
+    request.agent(server)
+    .post('/users')
+    .expect(400)
+    .end(done);
+  });
+
+});
+
 describe('missing parameters in get with custom errorHandling (in query)', function(){
   var server;
   before(function(){
@@ -169,7 +184,7 @@ describe('All parameters provided in get (in query / path)', function(){
   it('should return an HTTP 200 code when one parameter is provided in path', function(done){
 
     var app = express();
-    app.get('/user/:id', new swaggerInputValidator(swaggerFile, {strict: true}).get("/user/:id"), function(req, res){
+    app.get('/user/:id', new swaggerInputValidator(swaggerFile, {strict: true}).get("/users/:id"), function(req, res){
       res.status(200).json({ success: 'If you can enter here, it means that the swagger middleware let you do so' });
     });
 
