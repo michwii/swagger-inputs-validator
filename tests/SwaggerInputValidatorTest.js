@@ -225,13 +225,5 @@ function createFakeServer(swaggerMiddleware){
     res.status(200).json({ success: 'If you can enter here, it means that the swagger middleware let you do so' });
   });
 
-  app.use('/user/:id', swaggerMiddleware, function(req, res){
-    console.log('----------------------------')
-    console.log(req.params);
-    console.log('----------------------------')
-    res.status(200).json({ success: 'If you can enter here, it means that the swagger middleware let you do so' });
-  });
-
-
   return app;
 };
