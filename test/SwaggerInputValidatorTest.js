@@ -5,7 +5,6 @@ var bodyParser = require('body-parser');
 
 var swaggerInputValidator = require('../module.js');
 
-
 describe('Wrong instanciations', function() {
   var swaggerFile;
   before(function(){
@@ -277,6 +276,26 @@ describe('All parameters provided', function(){
   it('should return an HTTP 200 code when optional parameter is provided also in query', function(done){
     request.agent(server)
     .get('/products?longitude=50&latitude=50&optional=IamOptionalButPresentWithinTheSwaggerFile')
+    .expect(200, { success: 'If you can enter here, it means that the swagger middleware let you do so' })
+    .end(done);
+  });
+
+  it('should return an HTTP 200 code in POST (query + body)', function(done){
+    server = createFakeServer(new swaggerInputValidator(swaggerFile).post("/users"));
+    request.agent(server)
+    .post('/users?name=Bart&surname=Simpson')
+    .set('Content-Type', 'application/json')
+    .send({age : 9, sister: "Lisa Simpson"})
+    .expect(200, { success: 'If you can enter here, it means that the swagger middleware let you do so' })
+    .end(done);
+  });
+
+  it('should return an HTTP 200 code in POST (query + body)', function(done){
+    server = createFakeServer(new swaggerInputValidator(swaggerFile).put("/users"));
+    request.agent(server)
+    .put('/users?name=Bart&surname=Simpson')
+    .set('Content-Type', 'application/json')
+    .send({age : 9, sister: "Lisa Simpson"})
     .expect(200, { success: 'If you can enter here, it means that the swagger middleware let you do so' })
     .end(done);
   });
