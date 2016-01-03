@@ -64,24 +64,26 @@ SwaggerInputValidator.prototype.get = function(url){
 
     var query = req.query;
     var params = req.params;
-    var body = req.body;
+    //In get request, the body equals to null, this is why we need to instanciate it to {}
+    var body = (req.body) ? req.body : {};
+
     var errorsToReturn = new Array();
     //We verify that each required parameter within the swagger file is present within the request
     for(var parameter of parameters){
       switch(parameter.in){
         case "query":
-          if(query[parameter.name] == undefined){
+          if(query[parameter.name] == undefined && parameter.required == true){
             errorsToReturn.push(new Error("Parameter : " + parameter.name + " is not specified."));
           }
         break;
         case "path":
-          if(params[parameter.name] == undefined){
-            errorsToReturn.push(new Error("Parameter : " + parameter.name + "is not specified."));
+          if(params[parameter.name] == undefined && parameter.required == true){
+            errorsToReturn.push(new Error("Parameter : " + parameter.name + " is not specified."));
           }
         break;
         case "body":
-          if(body[parameter.name] == undefined){
-            errorsToReturn.push(new Error("Parameter : " + parameter.name + "is not specified."));
+          if(body[parameter.name] == undefined && parameter.required == true){
+            errorsToReturn.push(new Error("Parameter : " + parameter.name + " is not specified."));
           }
         break;
       }

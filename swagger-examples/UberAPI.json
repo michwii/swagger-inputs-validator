@@ -14,6 +14,25 @@
         "application/json"
     ],
     "paths": {
+        "/user/{id}": {
+            "get": {
+                "summary": "Retrieve user detail",
+                "description": "",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "type": "number",
+                        "format": "int32"
+                    }
+                ],
+                "tags": [
+                    "User"
+                ]
+
+            }
+        },
         "/products": {
             "get": {
                 "summary": "Product Types",
@@ -34,6 +53,13 @@
                         "required": true,
                         "type": "number",
                         "format": "double"
+                    },
+                    {
+                        "name": "optional",
+                        "in": "query",
+                        "description": "optional parameter.",
+                        "required": false,
+                        "type": "string"
                     }
                 ],
                 "tags": [

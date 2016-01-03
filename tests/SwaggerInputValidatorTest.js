@@ -25,6 +25,27 @@ describe('Wrong instanciation', function() {
     });
     done();
   });
+  it('should crash if swagger file without paths variable is specified', function(done){
+    assert.throws(function(){
+      new swaggerInputValidator({
+        "swagger": "2.0",
+        "info": {
+            "title": "Uber API",
+            "description": "Move your app forward with the Uber API",
+            "version": "1.0.0"
+        },
+        "host": "api.uber.com",
+        "schemes": [
+            "https"
+        ],
+        "basePath": "/v1",
+        "produces": [
+            "application/json"
+        ]
+      });
+    });
+    done();
+  });
   it('should crash if bad option object is passed', function(done){
     assert.throws(function(){
       new swaggerInputValidator(swaggerFile, "wrong option parameter");
@@ -131,28 +152,67 @@ describe('missing parameters in get with custom errorHandling (in query)', funct
   });
 });
 
-describe('All parameters provided in get (in query)', function(){
+describe('All parameters provided in get (in query / path)', function(){
   var server;
   before(function(){
     swaggerFile = require('./../swagger-examples/UberAPI.json');
     server = createFakeServer(new swaggerInputValidator(swaggerFile, {strict: true}).get("/products"));
   });
 
-  it('should return an HTTP 200 code when all parameters are provided', function(done){
+  it('should return an HTTP 200 code when all parameters are provided in query', function(done){
     request.agent(server)
     .get('/products?longitude=50&latitude=50')
     .expect(200, { success: 'If you can enter here, it means that the swagger middleware let you do so' })
     .end(done);
   });
 
-  it('should return an HTTP 400 code when extra parameters are provided', function(done){
+  it('should return an HTTP 200 code when one parameter is provided in path', function(done){
+
+    var app = express();
+    app.get('/user/:id', new swaggerInputValidator(swaggerFile, {strict: true}).get("/user/:id"), function(req, res){
+      res.status(200).json({ success: 'If you can enter here, it means that the swagger middleware let you do so' });
+    });
+
+    request.agent(app)
+    .get('/user/50')
+    .expect(200, { success: 'If you can enter here, it means that the swagger middleware let you do so' })
+    .end(done);
+  });
+
+  it('should return an HTTP 200 code when optional parameter is provided also in query', function(done){
     request.agent(server)
+    .get('/products?longitude=50&latitude=50&optional=IamOptionalButPresentWithinTheSwaggerFile')
+    .expect(200, { success: 'If you can enter here, it means that the swagger middleware let you do so' })
+    .end(done);
+  });
+
+});
+
+describe('strict / no strict mode)', function(){
+  var server;
+  before(function(){
+    swaggerFile = require('./../swagger-examples/UberAPI.json');
+    serverInStrictMode = createFakeServer(new swaggerInputValidator(swaggerFile, {strict: true}).get("/products"));
+    serverNotInStrictMode = createFakeServer(new swaggerInputValidator(swaggerFile, {strict: false}).get("/products"));
+  });
+
+  it('should return an HTTP 200 code when extra is provided and strict = false', function(done){
+    request.agent(serverNotInStrictMode)
+    .get('/products?longitude=50&latitude=50&extraParameter=shouldNotWork')
+    .expect(200, { success: 'If you can enter here, it means that the swagger middleware let you do so' })
+    .end(done);
+  });
+
+  it('should return an HTTP 400 code when extra parameters are provided and strict = true', function(done){
+    request.agent(serverInStrictMode)
     .get('/products?longitude=50&latitude=50&extraParameter=shouldNotWork')
     .expect(400, "Error: Parameter : extraParameter should not be specified.\n")
     .end(done);
   });
 
 });
+
+
 
 function createFakeServer(swaggerMiddleware){
   var app = express();
@@ -164,6 +224,14 @@ function createFakeServer(swaggerMiddleware){
   app.use(function(req, res){
     res.status(200).json({ success: 'If you can enter here, it means that the swagger middleware let you do so' });
   });
+
+  app.use('/user/:id', swaggerMiddleware, function(req, res){
+    console.log('----------------------------')
+    console.log(req.params);
+    console.log('----------------------------')
+    res.status(200).json({ success: 'If you can enter here, it means that the swagger middleware let you do so' });
+  });
+
 
   return app;
 };
