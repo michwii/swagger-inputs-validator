@@ -1,20 +1,52 @@
-# swagger-input-validator
-Lightweight Express middleware that allows the validation of incoming parameters.
+# swagger-inputs-validator
 
-Basic example :
+
+###About
+
+Lightweight Express middleware that allows the parameter validations coming to your routes.
+
+You have two ways of using this middleware :
+Control all the requests by using an application middleware
+Control a specific route by using a route middleware
+
+### Installation
 ```
-var express = require("express");
-var swaggerValidator = require("swagger-input-validator");
+npm install swagger-inputs-validator --save
+```
+
+###Examples
+Control a specific route :
+```
+var express = require('express');
+var SwaggerValidator = require('swagger-inputs-validator');
+var swaggerFile = require("./swagger.json");
 var app = express();
 
-swaggerValidator.use('PATH_OF_YOUR_SWAGGER_FILE.json');
+var middleware = new SwaggerValidator(swaggerFile);
 
-app.use(swaggerValidator);
-
-app.get('/users/:id', function(req, res){
-  //Will enter here only if all the parameters specified within the swagger are correct.
-  res.json({ok : true});
+app.get('/products', middleware.get('/products'), function(req,res){
+  res.json({success: 'If you can enter here it seems that sawgger validator let you get in'});
 })
 
-var server = app.listen(80);
+app.listen(80)
+
+```
+
+Control your entire application : 
+```
+var express = require('express');
+var SwaggerValidator = require('swagger-inputs-validator');
+var swaggerFile = require("./swagger.json");
+var app = express();
+
+var middleware = new SwaggerValidator(swaggerFile);
+
+app.use(middleware.controlAll());
+
+app.get('/products', function(req,res){
+  res.json({success: 'If you can enter here it seems that sawgger validator let you get in'});
+})
+
+app.listen(80)
+
 ```
