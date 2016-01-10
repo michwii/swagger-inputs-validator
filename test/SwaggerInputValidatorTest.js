@@ -302,6 +302,20 @@ describe('All parameters provided', function(){
 
 });
 
+describe('Control all requests',function(){
+  var server;
+  before(function(){
+    server = createFakeServer(new swaggerInputValidator(swaggerFile).all());
+  });
+
+  it('Should block all requests that do not respect the swagger specification', function(done){
+    request.agent(server)
+    .get('/users/50')
+    .expect(200)
+    .end(done);
+  })
+});
+
 function createFakeServer(swaggerMiddleware){
   var app = express();
 

@@ -1,5 +1,3 @@
-var fs = require("fs");
-
 var SwaggerInputValidator = function(swagger, options){
   if(swagger.paths){
     this._swaggerFile = swagger;
@@ -21,11 +19,24 @@ var SwaggerInputValidator = function(swagger, options){
           this._strict = strict;
         }
       }
+
+      //Now we create an array of regular expressions that we are going to check whenever a request is coming to the app.
+      this._regularExpressions = new Array();
+      this._variableNames = new Array();
+      var thisReference = this;
+      Object.keys(swagger.paths).forEach(function (url) {
+        thisReference._variableNames.push(new Array());
+        var customRegex = url.replace(/{(\w+)}/gi, function myFunction(wholeString, variableName){
+          var whereToPutMyVariables = thisReference._variableNames[thisReference._variableNames.length - 1];
+          whereToPutMyVariables.push(variableName);
+          return "(\\w+)";
+        });
+        thisReference._regularExpressions.push(customRegex);
+      });
+      //End creation array of regular expression
+
     }
-
-
   }else{
-    console.error("SwaggerInputValidator:");
     throw new Error("The swagger specified is not correct. It do not contains any paths specification");
   }
 };
@@ -40,6 +51,13 @@ SwaggerInputValidator.prototype.onError = function(errors, req, res){
   this._onError(errors, req, res);
 };
 
+SwaggerInputValidator.prototype.all = function(){
+  var thisReference = this;
+  return function(req, res, next){
+    console.log(thisReference.getRequiredParameters(req.method, req.url));
+    next();
+  };
+};
 
 SwaggerInputValidator.prototype.get = function(url){
   var requiredParameters = this.getRequiredParameters("get", url);
@@ -142,18 +160,41 @@ SwaggerInputValidator.prototype.getRequiredParameters = function(verb, url){
   url = url.replace(/:(\w+)/gi, function myFunction(x, y){
     return "{" + y + "}";
   });
+  verb = verb.toLowerCase();
 
+  //If parameter is undefined it is either because the user asked for an url which is not present within the swagger file or because the url contains parameters
+  //Ex : /users/50 ==> correspond to this url in the swagger /users/{id}
+  //We then need to iterate on all the urls specified within the swagger file and see if we have an url that match
   if(this._swaggerFile.paths[url] == undefined || this._swaggerFile.paths[url][verb] == undefined){
-    throw new Error('The url ' + url + ' has not any '+verb+' method defined within the swagger file');
+    Object.keys(this._swaggerFile.paths).forEach(function (path, index) {
+
+      var variableNames = new Array();
+      customRegex = path.replace(/{(\w+)}/gi, function myFunction(x, y){
+        variableNames.push(y);
+        return "(\\w+)";
+      });
+
+      var finalUrl = url.replace(new RegExp(customRegex, 'gi'), function myFunction(){
+        var wholeString = arguments[0];
+        for(var i = 1; i < arguments.length -2 ; i++){
+          wholeString = wholeString.replace(arguments[i], "{" + variableNames.shift() + "}")
+        }
+        return wholeString;
+      });
+
+      console.log(finalUrl);
+
+    });
+    return {};
   }
 
   var parameters = this._swaggerFile.paths[url][verb].parameters;
+
   if(parameters == undefined){
     parameters = [];
   }
 
   return parameters;
-
 };
 
 
