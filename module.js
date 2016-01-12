@@ -22,9 +22,11 @@ var SwaggerInputValidator = function(swagger, options){
 
       //Now we create an array of regular expressions that we are going to check whenever a request is coming to the app.
       this._regularExpressions = new Array();
+      this._pathsAsArray = new Array();
       this._variableNames = new Array();
       var thisReference = this;
       Object.keys(swagger.paths).forEach(function (url) {
+        thisReference._pathsAsArray.push(url);
         thisReference._variableNames.push(new Array());
         var customRegex = url.replace(/{(\w+)}/gi, function myFunction(wholeString, variableName){
           var whereToPutMyVariables = thisReference._variableNames[thisReference._variableNames.length - 1];
@@ -41,12 +43,6 @@ var SwaggerInputValidator = function(swagger, options){
   }
 };
 
-SwaggerInputValidator.prototype.middleware = function(){
-  return function(req, res, next){
-    next();
-  }
-};
-
 SwaggerInputValidator.prototype.onError = function(errors, req, res){
   this._onError(errors, req, res);
 };
@@ -54,10 +50,50 @@ SwaggerInputValidator.prototype.onError = function(errors, req, res){
 SwaggerInputValidator.prototype.all = function(){
   var thisReference = this;
   return function(req, res, next){
-    console.log(thisReference.getRequiredParameters(req.method, req.url));
-    next();
+    var verb = req.method;
+    var url = req.url;
+    var swaggerUrl = thisReference.getSwaggerUrl(url);
+    var swaggerParameters = thisReference.getRequiredParameters(verb, swaggerUrl);
+
+    var queryParameters = req.query;
+    var pathParameters = thisReference.getPathParametersFromUrl(swaggerUrl, swaggerParameters);
+    //In get request, the body equals to null, this is why we need to instanciate it to {}
+    var bodyParameters = (req.body) ? req.body : {};
+
+    var errorsToReturn = thisReference.getErrors(swaggerParameters, queryParameters, pathParameters, bodyParameters);
+
+    if(errorsToReturn.length == 0){
+      next();
+    }else{
+      res.status(400);
+      if(thisReference._onError){
+        thisReference.onError(errorsToReturn, req, res);
+      }else{
+        next(errorsToReturn);
+      }
+    }
+
   };
 };
+
+SwaggerInputValidator.prototype.getPathParametersFromUrl = function(swaggerUrl, swaggerParameters){
+  return { id : 50};
+};
+
+SwaggerInputValidator.prototype.getSwaggerUrl = function(url){
+  var swaggerPath = null;
+  for(var i = 0; i < this._regularExpressions.length; i++){
+    var regularExpression = this._regularExpressions[i];
+    var match = url.match(new RegExp(regularExpression + '/?(\\?[^/]+)?$', 'gmi'));
+    if(match){
+      if(swaggerPath){//If we enter here it means that we detected duplicated entries for the regular expression. It means that the regular expression for url parsing must be reviewed.
+        throw new Error('Duplicate swagger path for this url. Please signal this bug.');
+      }else{
+        return this._pathsAsArray[i];
+      }
+    }
+  }
+}
 
 SwaggerInputValidator.prototype.get = function(url){
   var requiredParameters = this.getRequiredParameters("get", url);
@@ -79,69 +115,18 @@ SwaggerInputValidator.prototype.delete = function(url){
   return this.getGeneriqueMiddleware(requiredParameters);
 };
 
+
 SwaggerInputValidator.prototype.getGeneriqueMiddleware = function(parameters){
 
   var thisReference = this;
   return function(req, res, next){
 
-    var query = req.query;
-    var params = req.params;
+    var queryParameters = req.query;
+    var pathParameters = req.params;
     //In get request, the body equals to null, this is why we need to instanciate it to {}
-    var body = (req.body) ? req.body : {};
+    var bodyParameters = (req.body) ? req.body : {};
 
-    var errorsToReturn = new Array();
-    //We verify that each required parameter within the swagger file is present within the request
-    for(var parameter of parameters){
-      switch(parameter.in){
-        case "query":
-          if(query[parameter.name] == undefined && parameter.required == true){
-            errorsToReturn.push(new Error("Parameter : " + parameter.name + " is not specified."));
-          }
-        break;
-        case "path":
-          if(params[parameter.name] == undefined && parameter.required == true){
-            errorsToReturn.push(new Error("Parameter : " + parameter.name + " is not specified."));
-          }
-        break;
-        case "body":
-          if(body[parameter.name] == undefined && parameter.required == true){
-            errorsToReturn.push(new Error("Parameter : " + parameter.name + " is not specified."));
-          }
-        break;
-      }
-    }
-
-    //If the _strict parameter is specified, we do the verification the other way around also.
-    //We verify that each parameter in the request is present within the swagger file
-    if(thisReference._strict){
-
-      var isPresentWithinTheSwagger = function(whereToSearch, variableName){
-        for(var parameter of parameters){
-          if(parameter.in == whereToSearch && parameter.name == variableName){
-            return true;
-          }
-        }
-        return false;
-      }
-
-      Object.keys(query).forEach(function (variableName, index) {
-          if(!isPresentWithinTheSwagger("query", variableName)){
-            errorsToReturn.push(new Error("Parameter : " + variableName + " should not be specified."));
-          }
-      });
-
-      Object.keys(params).forEach(function (variableName, index) {
-          if(!isPresentWithinTheSwagger("path", variableName)){
-            errorsToReturn.push(new Error("Parameter : " + variableName + " should not be specified."));
-          }
-      });
-
-      Object.keys(body).forEach(function (variableName, index) {
-          if(!isPresentWithinTheSwagger("body", variableName)){
-            errorsToReturn.push(new Error("Parameter : " + variableName + " should not be specified."));
-          }
-      });
-    }
+    var errorsToReturn = thisReference.getErrors(parameters, queryParameters, pathParameters, bodyParameters);
 
     if(errorsToReturn.length == 0){
       next();
@@ -156,6 +141,68 @@ SwaggerInputValidator.prototype.getGeneriqueMiddleware = function(parameters){
   };
 };
 
+
+SwaggerInputValidator.prototype.getErrors = function(swaggerParameters, queryParameters, pathParameters, bodyParameters){
+
+  var thisReference = this;
+
+  var errorsToReturn = new Array();
+  //We verify that each required parameter within the swagger file is present within the request
+  for(var parameter of swaggerParameters){
+    switch(parameter.in){
+      case "query":
+        if(queryParameters[parameter.name] == undefined && parameter.required == true){
+          errorsToReturn.push(new Error("Parameter : " + parameter.name + " is not specified."));
+        }
+      break;
+      case "path":
+        if(pathParameters[parameter.name] == undefined && parameter.required == true){
+          errorsToReturn.push(new Error("Parameter : " + parameter.name + " is not specified."));
+        }
+      break;
+      case "body":
+        if(bodyParameters[parameter.name] == undefined && parameter.required == true){
+          errorsToReturn.push(new Error("Parameter : " + parameter.name + " is not specified."));
+        }
+      break;
+    }
+  }
+
+  //If the _strict parameter is specified, we do the verification the other way around also.
+  //We verify that each parameter in the request is present within the swagger file
+  if(this._strict){
+
+    var isPresentWithinTheSwagger = function(whereToSearch, variableName){
+      for(var parameter of swaggerParameters){
+        if(parameter.in == whereToSearch && parameter.name == variableName){
+          return true;
+        }
+      }
+      return false;
+    }
+
+    Object.keys(queryParameters).forEach(function (variableName, index) {
+        if(!isPresentWithinTheSwagger("query", variableName)){
+          errorsToReturn.push(new Error("Parameter : " + variableName + " should not be specified."));
+        }
+    });
+
+    Object.keys(pathParameters).forEach(function (variableName, index) {
+        if(!isPresentWithinTheSwagger("path", variableName)){
+          errorsToReturn.push(new Error("Parameter : " + variableName + " should not be specified."));
+        }
+    });
+
+    Object.keys(bodyParameters).forEach(function (variableName, index) {
+        if(!isPresentWithinTheSwagger("body", variableName)){
+          errorsToReturn.push(new Error("Parameter : " + variableName + " should not be specified."));
+        }
+    });
+  }
+  return errorsToReturn;
+
+};
+
 SwaggerInputValidator.prototype.getRequiredParameters = function(verb, url){
   url = url.replace(/:(\w+)/gi, function myFunction(x, y){
     return "{" + y + "}";
@@ -166,26 +213,8 @@ SwaggerInputValidator.prototype.getRequiredParameters = function(verb, url){
   //Ex : /users/50 ==> correspond to this url in the swagger /users/{id}
   //We then need to iterate on all the urls specified within the swagger file and see if we have an url that match
   if(this._swaggerFile.paths[url] == undefined || this._swaggerFile.paths[url][verb] == undefined){
-    Object.keys(this._swaggerFile.paths).forEach(function (path, index) {
-
-      var variableNames = new Array();
-      customRegex = path.replace(/{(\w+)}/gi, function myFunction(x, y){
-        variableNames.push(y);
-        return "(\\w+)";
-      });
-
-      var finalUrl = url.replace(new RegExp(customRegex, 'gi'), function myFunction(){
-        var wholeString = arguments[0];
-        for(var i = 1; i < arguments.length -2 ; i++){
-          wholeString = wholeString.replace(arguments[i], "{" + variableNames.shift() + "}")
-        }
-        return wholeString;
-      });
-
-      console.log(finalUrl);
-
-    });
-    return {};
+    throw new Error('Their is no swagger entries for the url : ' + url + 'with the HTTP verb : '+ verb);
+    return [];
   }
 
   var parameters = this._swaggerFile.paths[url][verb].parameters;
