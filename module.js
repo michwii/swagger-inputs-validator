@@ -21,19 +21,15 @@ var SwaggerInputValidator = function(swagger, options){
       }
 
       //Now we create an array of regular expressions that we are going to check whenever a request is coming to the app.
-      this._regularExpressions = new Array();
-      this._pathsAsArray = new Array();
-      this._variableNames = new Array();
+      this._parsingParameters = new Array();
       var thisReference = this;
       Object.keys(swagger.paths).forEach(function (url) {
-        thisReference._pathsAsArray.push(url);
-        thisReference._variableNames.push(new Array());
+        var variableNames = new Array();
         var customRegex = url.replace(/{(\w+)}/gi, function myFunction(wholeString, variableName){
-          var whereToPutMyVariables = thisReference._variableNames[thisReference._variableNames.length - 1];
-          whereToPutMyVariables.push(variableName);
+          variableNames.push(variableName);
           return "(\\w+)";
         });
-        thisReference._regularExpressions.push(customRegex);
+        thisReference._parsingParameters.push({regexp : customRegex, variables : variableNames, swaggerPath : url});
       });
       //End creation array of regular expression
 
@@ -52,11 +48,11 @@ SwaggerInputValidator.prototype.all = function(){
   return function(req, res, next){
     var verb = req.method;
     var url = req.url;
-    var swaggerUrl = thisReference.getSwaggerUrl(url);
-    var swaggerParameters = thisReference.getRequiredParameters(verb, swaggerUrl);
+    var parsingParameters = thisReference.getParsingParameters(url);
+    var swaggerParameters = thisReference.getRequiredParameters(verb, parsingParameters.swaggerPath);
 
     var queryParameters = req.query;
-    var pathParameters = thisReference.getPathParametersFromUrl(swaggerUrl, swaggerParameters);
+    var pathParameters = thisReference.getPathParametersFromUrl(url, parsingParameters);
     //In get request, the body equals to null, this is why we need to instanciate it to {}
     var bodyParameters = (req.body) ? req.body : {};
 
@@ -76,20 +72,25 @@ SwaggerInputValidator.prototype.all = function(){
   };
 };
 
-SwaggerInputValidator.prototype.getPathParametersFromUrl = function(swaggerUrl, swaggerParameters){
-  return { id : 50};
+SwaggerInputValidator.prototype.getPathParametersFromUrl = function(url, parsingParameters){
+  var pathParameters = {};
+  for(var variable of parsingParameters.variables){
+    pathParameters[variable] = url.match(parsingParameters.regexp)[1];
+  }
+  return pathParameters;
 };
 
-SwaggerInputValidator.prototype.getSwaggerUrl = function(url){
+
+SwaggerInputValidator.prototype.getParsingParameters = function(url){
   var swaggerPath = null;
-  for(var i = 0; i < this._regularExpressions.length; i++){
-    var regularExpression = this._regularExpressions[i];
+  for(var i = 0; i < this._parsingParameters.length; i++){
+    var regularExpression = this._parsingParameters[i].regexp;
     var match = url.match(new RegExp(regularExpression + '/?(\\?[^/]+)?$', 'gmi'));
     if(match){
       if(swaggerPath){//If we enter here it means that we detected duplicated entries for the regular expression. It means that the regular expression for url parsing must be reviewed.
         throw new Error('Duplicate swagger path for this url. Please signal this bug.');
       }else{
-        return this._pathsAsArray[i];
+        return this._parsingParameters[i];
       }
     }
   }
