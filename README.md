@@ -41,7 +41,7 @@ var app = express();
 
 var middleware = new SwaggerValidator(swaggerFile);
 
-app.use(middleware.controlAll());
+app.use(middleware.all());
 
 app.get('/products', function(req,res){
   res.json({success: 'If you can enter here it seems that sawgger validator let you get in'});
