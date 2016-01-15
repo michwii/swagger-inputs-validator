@@ -1,4 +1,10 @@
+/**
+  Constructor
+  @param swagger : the swaggerfile in json format
+  @param options : [optional] options of the middleware
+*/
 var SwaggerInputValidator = function(swagger, options){
+  //controls that swagger file has at least paths defined
   if(swagger.paths){
     this._swaggerFile = swagger;
     if(options && typeof options != 'object'){
@@ -217,6 +223,9 @@ var getGeneriqueMiddleware = function(swaggerParameters){
   };
 };
 
+/**
+  @return a middleware that will control all the incoming requests
+*/
 SwaggerInputValidator.prototype.all = function(){
   var thisReference = this;
   return function(req, res, next){
@@ -254,31 +263,55 @@ SwaggerInputValidator.prototype.all = function(){
   };
 };
 
+/**
+  @param url : url to control
+  @return a middleware that will control all the incoming requests in get that respect a given url
+*/
 SwaggerInputValidator.prototype.get = function(url){
   var requiredParameters = getRequiredParameters.call(this, "get", url);
   return getGeneriqueMiddleware.call(this, requiredParameters);
 };
 
+/**
+  @param url : url to control
+  @return a middleware that will control all the incoming requests in post that respect a given url
+*/
 SwaggerInputValidator.prototype.post = function(url){
   var requiredParameters = getRequiredParameters.call(this, "post", url);
   return getGeneriqueMiddleware.call(this, requiredParameters);
 };
 
+/**
+  @param url : url to control
+  @return a middleware that will control all the incoming requests in put that respect a given url
+*/
 SwaggerInputValidator.prototype.put = function(url){
   var requiredParameters = getRequiredParameters.call(this, "put", url);
   return getGeneriqueMiddleware.call(this, requiredParameters);
 };
 
+/**
+  @param url : url to control
+  @return a middleware that will control all the incoming requests in delete that respect a given url
+*/
 SwaggerInputValidator.prototype.delete = function(url){
   var requiredParameters = getRequiredParameters.call(this, "delete", url);
   return getGeneriqueMiddleware.call(this, requiredParameters);
 };
 
+/**
+  @param url : url to control
+  @return a middleware that will control all the incoming requests in patch that respect a given url
+*/
 SwaggerInputValidator.prototype.patch = function(url){
   var requiredParameters = getRequiredParameters.call(this, "patch", url);
   return getGeneriqueMiddleware.call(this, requiredParameters);
 };
 
+/**
+  @param url : url to control
+  @return a middleware that will control all the incoming requests in head that respect a given url
+*/
 SwaggerInputValidator.prototype.head = function(url){
   var requiredParameters = getRequiredParameters.call(this, "head", url);
   return getGeneriqueMiddleware.call(this, requiredParameters);
