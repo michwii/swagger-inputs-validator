@@ -189,27 +189,7 @@ var getRequiredParameters = function(verb, url){
   return parameters;
 };
 
-SwaggerInputValidator.prototype.get = function(url){
-  var requiredParameters = getRequiredParameters.call(this, "get", url);
-  return this.getGeneriqueMiddleware(requiredParameters);
-};
-
-SwaggerInputValidator.prototype.post = function(url){
-  var requiredParameters = getRequiredParameters.call(this, "post", url);
-  return this.getGeneriqueMiddleware(requiredParameters);
-};
-
-SwaggerInputValidator.prototype.put = function(url){
-  var requiredParameters = getRequiredParameters.call(this, "put", url);
-  return this.getGeneriqueMiddleware(requiredParameters);
-};
-
-SwaggerInputValidator.prototype.delete = function(url){
-  var requiredParameters = getRequiredParameters.call(this, "delete", url);
-  return this.getGeneriqueMiddleware(requiredParameters);
-};
-
-SwaggerInputValidator.prototype.getGeneriqueMiddleware = function(parameters){
+var getGeneriqueMiddleware = function(parameters){
 
   var thisReference = this;
   return function(req, res, next){
@@ -233,6 +213,26 @@ SwaggerInputValidator.prototype.getGeneriqueMiddleware = function(parameters){
       }
     }
   };
+};
+
+SwaggerInputValidator.prototype.get = function(url){
+  var requiredParameters = getRequiredParameters.call(this, "get", url);
+  return getGeneriqueMiddleware.call(this, requiredParameters);
+};
+
+SwaggerInputValidator.prototype.post = function(url){
+  var requiredParameters = getRequiredParameters.call(this, "post", url);
+  return getGeneriqueMiddleware.call(this, requiredParameters);
+};
+
+SwaggerInputValidator.prototype.put = function(url){
+  var requiredParameters = getRequiredParameters.call(this, "put", url);
+  return getGeneriqueMiddleware.call(this, requiredParameters);
+};
+
+SwaggerInputValidator.prototype.delete = function(url){
+  var requiredParameters = getRequiredParameters.call(this, "delete", url);
+  return getGeneriqueMiddleware.call(this, requiredParameters);
 };
 
 exports = module.exports = SwaggerInputValidator;
