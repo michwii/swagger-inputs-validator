@@ -69,43 +69,6 @@ var getParsingParameters = function(url){
   }
 }
 
-SwaggerInputValidator.prototype.all = function(){
-  var thisReference = this;
-  return function(req, res, next){
-    var verb = req.method;
-    var url = req.url;
-    var parsingParameters = getParsingParameters.call(thisReference, url);
-
-    //If no parsing parameters are found, is either because their is no swagger path available for the requested url
-    //Or the app will return an 404 error code.
-    if(parsingParameters == null){
-      next();
-      return;
-    }
-
-    var swaggerParameters = getRequiredParameters.call(thisReference, verb, parsingParameters.swaggerPath);
-
-    var queryParameters = req.query;
-    var pathParameters = getPathParametersFromUrl.call(thisReference, url, parsingParameters);
-    //In get request, the body equals to null, this is why we need to instanciate it to {}
-    var bodyParameters = (req.body) ? req.body : {};
-
-    var errorsToReturn = getErrors.call(thisReference, swaggerParameters, queryParameters, pathParameters, bodyParameters);
-
-    if(errorsToReturn.length == 0){
-      next();
-    }else{
-      res.status(400);
-      if(thisReference._onError){
-        //We call the onError private method giving him a context. This is why we are using onError.call
-        onError.call(thisReference, errorsToReturn, req, res);
-      }else{
-        next(errorsToReturn);
-      }
-    }
-  };
-};
-
 //private method
 var getErrors = function(swaggerParameters, queryParameters, pathParameters, bodyParameters){
   var thisReference = this;
@@ -200,6 +163,43 @@ var getGeneriqueMiddleware = function(parameters){
     var bodyParameters = (req.body) ? req.body : {};
 
     var errorsToReturn = getErrors.call(thisReference, parameters, queryParameters, pathParameters, bodyParameters);
+
+    if(errorsToReturn.length == 0){
+      next();
+    }else{
+      res.status(400);
+      if(thisReference._onError){
+        //We call the onError private method giving him a context. This is why we are using onError.call
+        onError.call(thisReference, errorsToReturn, req, res);
+      }else{
+        next(errorsToReturn);
+      }
+    }
+  };
+};
+
+SwaggerInputValidator.prototype.all = function(){
+  var thisReference = this;
+  return function(req, res, next){
+    var verb = req.method;
+    var url = req.url;
+    var parsingParameters = getParsingParameters.call(thisReference, url);
+
+    //If no parsing parameters are found, is either because their is no swagger path available for the requested url
+    //Or the app will return an 404 error code.
+    if(parsingParameters == null){
+      next();
+      return;
+    }
+
+    var swaggerParameters = getRequiredParameters.call(thisReference, verb, parsingParameters.swaggerPath);
+
+    var queryParameters = req.query;
+    var pathParameters = getPathParametersFromUrl.call(thisReference, url, parsingParameters);
+    //In get request, the body equals to null, this is why we need to instanciate it to {}
+    var bodyParameters = (req.body) ? req.body : {};
+
+    var errorsToReturn = getErrors.call(thisReference, swaggerParameters, queryParameters, pathParameters, bodyParameters);
 
     if(errorsToReturn.length == 0){
       next();
