@@ -39,12 +39,30 @@ var SwaggerInputValidator = function(swagger, options){
   }
 };
 
-//Private method
+/**
+  Private method
+  This method is executed if you have specified a custom error method within the constructor of the middleware
+  @param erros : Contains all the parameters that do not respect the swagger file requirements
+  @param req : the request
+  @param res : the response
+*/
 var onError = function(errors, req, res){
   this._onError(errors, req, res);
 };
 
-//Private method
+/**
+  Private method
+  @param url : the url of the request
+  @param parsingParameters : eg : {regexp : "/users/(\w+)", variables: ["id"], swaggerUrl : "/users/{id}"}
+  By giving in input the url of the request and the parsingParameters this method is able to extract
+  from the url the values of the variable. The aims is to do the same job as express does when you write
+  app.get('/users/:id', function(req, res){})
+  The :id value is filled within the variable req.params.
+  This method do the same thing.
+  Why are we not using the express method ?
+  Because the method getPathParametersFromUrl is called before express can generate req.params.
+  @return the an object that is similar to req.params
+*/
 var getPathParametersFromUrl = function(url, parsingParameters){
   var pathParameters = {};
   for(var variable of parsingParameters.variables){
@@ -53,7 +71,12 @@ var getPathParametersFromUrl = function(url, parsingParameters){
   return pathParameters;
 };
 
-//Private method
+/**
+  Private method
+  @param url : url of the request
+  It fetchs the array this._parsingParameters and performs a test with the regexp in it against the url passed in parameter
+  @return eg : {regexp : "/users/(\w+)", variables: ["id"], swaggerUrl : "/users/{id}"}
+*/
 var getParsingParameters = function(url){
   var swaggerPath = null;
   for(var i = 0; i < this._parsingParameters.length; i++){
@@ -69,7 +92,14 @@ var getParsingParameters = function(url){
   }
 }
 
-//private method
+/**
+  private method
+  @param swaggerParameters : the swagger parameter that you have to respect (given a certain url)
+  @param queryParameters : the parameters present within the req.query
+  @param pathParameters : the parameters present within the req.path
+  @param bodyParameters : the parameters present within the req.body
+  @return An array of parameters that do not respect the swagger file requirements
+*/
 var getErrors = function(swaggerParameters, queryParameters, pathParameters, bodyParameters){
   var thisReference = this;
 
@@ -128,16 +158,20 @@ var getErrors = function(swaggerParameters, queryParameters, pathParameters, bod
   return errorsToReturn;
 };
 
-//Private method
+/**
+  Private method
+  @param : verb (GET, POST, PUT, DELETE etc...)
+  @param : swagger url of the request
+  Look for the required parameters I have to respect depending on the requested url
+  @return the required parameters I have to respect
+*/
 var getRequiredParameters = function(verb, url){
   url = url.replace(/:(\w+)/gi, function myFunction(x, y){
     return "{" + y + "}";
   });
   verb = verb.toLowerCase();
 
-  //If parameter is undefined it is either because the user asked for an url which is not present within the swagger file or because the url contains parameters
-  //Ex : /users/50 ==> correspond to this url in the swagger /users/{id}
-  //We then need to iterate on all the urls specified within the swagger file and see if we have an url that match
+  //If parameter is undefined is because the user asked for an url which is not present within the swagger file
   if(this._swaggerFile.paths[url] == undefined || this._swaggerFile.paths[url][verb] == undefined){
     throw new Error('Their is no swagger entries for the url : ' + url + 'with the HTTP verb : '+ verb);
     return [];
@@ -152,7 +186,12 @@ var getRequiredParameters = function(verb, url){
   return parameters;
 };
 
-var getGeneriqueMiddleware = function(parameters){
+/**
+  Private method
+  @param swaggerParamters : required parameters for the request
+  @return a generique middleware that will control that all the requested parameters are present within the request
+*/
+var getGeneriqueMiddleware = function(swaggerParameters){
 
   var thisReference = this;
   return function(req, res, next){
@@ -162,7 +201,7 @@ var getGeneriqueMiddleware = function(parameters){
     //In get request, the body equals to null, this is why we need to instanciate it to {}
     var bodyParameters = (req.body) ? req.body : {};
 
-    var errorsToReturn = getErrors.call(thisReference, parameters, queryParameters, pathParameters, bodyParameters);
+    var errorsToReturn = getErrors.call(thisReference, swaggerParameters, queryParameters, pathParameters, bodyParameters);
 
     if(errorsToReturn.length == 0){
       next();
