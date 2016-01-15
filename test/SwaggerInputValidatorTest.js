@@ -305,7 +305,8 @@ describe('All parameters provided', function(){
 describe('Control all requests',function(){
   var server;
   before(function(){
-    server = createFakeServer(new swaggerInputValidator(swaggerFile).all());
+    var middleware = new swaggerInputValidator(swaggerFile);
+    server = createFakeServer(middleware.all());
   });
 
   it('Should accept the request when path parameter is correct', function(done){

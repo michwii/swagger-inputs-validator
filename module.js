@@ -37,11 +37,20 @@ var SwaggerInputValidator = function(swagger, options){
   }else{
     throw new Error("The swagger specified is not correct. It do not contains any paths specification");
   }
-
 };
 
+//Private method
 var onError = function(errors, req, res){
   this._onError(errors, req, res);
+};
+
+//Private method
+var getPathParametersFromUrl = function(url, parsingParameters){
+  var pathParameters = {};
+  for(var variable of parsingParameters.variables){
+    pathParameters[variable] = url.match(parsingParameters.regexp)[1];
+  }
+  return pathParameters;
 };
 
 SwaggerInputValidator.prototype.all = function(){
@@ -61,7 +70,7 @@ SwaggerInputValidator.prototype.all = function(){
     var swaggerParameters = thisReference.getRequiredParameters(verb, parsingParameters.swaggerPath);
 
     var queryParameters = req.query;
-    var pathParameters = thisReference.getPathParametersFromUrl(url, parsingParameters);
+    var pathParameters = getPathParametersFromUrl.call(thisReference, url, parsingParameters);
     //In get request, the body equals to null, this is why we need to instanciate it to {}
     var bodyParameters = (req.body) ? req.body : {};
 
@@ -81,15 +90,6 @@ SwaggerInputValidator.prototype.all = function(){
 
   };
 };
-
-SwaggerInputValidator.prototype.getPathParametersFromUrl = function(url, parsingParameters){
-  var pathParameters = {};
-  for(var variable of parsingParameters.variables){
-    pathParameters[variable] = url.match(parsingParameters.regexp)[1];
-  }
-  return pathParameters;
-};
-
 
 SwaggerInputValidator.prototype.getParsingParameters = function(url){
   var swaggerPath = null;
