@@ -4,7 +4,7 @@
     "express": "^4.13.3"
   },
   "name": "swagger-inputs-validator",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Lightweight Express middleware that allows the validation of incoming parameters.",
   "main": "module.js",
   "devDependencies": {

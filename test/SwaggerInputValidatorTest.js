@@ -308,12 +308,21 @@ describe('Control all requests',function(){
     server = createFakeServer(new swaggerInputValidator(swaggerFile).all());
   });
 
-  it('Should block all requests that do not respect the swagger specification', function(done){
+  it('Should accept the request when path parameter is correct', function(done){
     request.agent(server)
     .get('/users/50')
     .expect(200)
     .end(done);
   })
+
+  it('Should return 404 when asking unknown url', function(done){
+    request.agent(server)
+    .get('/urlThatDoesNotExist')
+    .expect(404)
+    .end(done);
+  })
+
+
 });
 
 function createFakeServer(swaggerMiddleware){
@@ -324,7 +333,11 @@ function createFakeServer(swaggerMiddleware){
   app.use(swaggerMiddleware);
 
   app.use(function(req, res){
-    res.status(200).json({ success: 'If you can enter here, it means that the swagger middleware let you do so' });
+    if(req.url == "/urlThatDoesNotExist"){
+      res.status(404).json({ success: 'If you can enter here, it means that the swagger middleware let you do so' });
+    }else{
+      res.status(200).json({ success: 'If you can enter here, it means that the swagger middleware let you do so' });
+    }
   });
 
   return app;

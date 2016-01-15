@@ -49,6 +49,12 @@ SwaggerInputValidator.prototype.all = function(){
     var verb = req.method;
     var url = req.url;
     var parsingParameters = thisReference.getParsingParameters(url);
+
+    if(parsingParameters == null){
+      next();
+      return;
+    }
+
     var swaggerParameters = thisReference.getRequiredParameters(verb, parsingParameters.swaggerPath);
 
     var queryParameters = req.query;
@@ -61,6 +67,7 @@ SwaggerInputValidator.prototype.all = function(){
     if(errorsToReturn.length == 0){
       next();
     }else{
+      console.log("Je devrais pas renter ici")
       res.status(400);
       if(thisReference._onError){
         thisReference.onError(errorsToReturn, req, res);
