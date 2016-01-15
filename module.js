@@ -37,9 +37,10 @@ var SwaggerInputValidator = function(swagger, options){
   }else{
     throw new Error("The swagger specified is not correct. It do not contains any paths specification");
   }
+
 };
 
-SwaggerInputValidator.prototype.onError = function(errors, req, res){
+var onError = function(errors, req, res){
   this._onError(errors, req, res);
 };
 
@@ -50,6 +51,8 @@ SwaggerInputValidator.prototype.all = function(){
     var url = req.url;
     var parsingParameters = thisReference.getParsingParameters(url);
 
+    //If no parsing parameters are found, is either because their is no swagger path available for the requested url
+    //Or the app will return an 404 error code.
     if(parsingParameters == null){
       next();
       return;
@@ -67,10 +70,10 @@ SwaggerInputValidator.prototype.all = function(){
     if(errorsToReturn.length == 0){
       next();
     }else{
-      console.log("Je devrais pas renter ici")
       res.status(400);
       if(thisReference._onError){
-        thisReference.onError(errorsToReturn, req, res);
+        //We call the onError private method giving him a context. This is why we are using onError.call
+        onError.call(thisReference, errorsToReturn, req, res);
       }else{
         next(errorsToReturn);
       }
@@ -141,7 +144,8 @@ SwaggerInputValidator.prototype.getGeneriqueMiddleware = function(parameters){
     }else{
       res.status(400);
       if(thisReference._onError){
-        thisReference.onError(errorsToReturn, req, res);
+        //We call the onError private method giving him a context. This is why we are using onError.call
+        onError.call(thisReference, errorsToReturn, req, res);
       }else{
         next(errorsToReturn);
       }
