@@ -53,12 +53,28 @@ var getPathParametersFromUrl = function(url, parsingParameters){
   return pathParameters;
 };
 
+//Private method
+var getParsingParameters = function(url){
+  var swaggerPath = null;
+  for(var i = 0; i < this._parsingParameters.length; i++){
+    var regularExpression = this._parsingParameters[i].regexp;
+    var match = url.match(new RegExp(regularExpression + '/?(\\?[^/]+)?$', 'gmi'));
+    if(match){
+      if(swaggerPath){//If we enter here it means that we detected duplicated entries for the regular expression. It means that the regular expression for url parsing must be reviewed.
+        throw new Error('Duplicate swagger path for this url. Please signal this bug.');
+      }else{
+        return this._parsingParameters[i];
+      }
+    }
+  }
+}
+
 SwaggerInputValidator.prototype.all = function(){
   var thisReference = this;
   return function(req, res, next){
     var verb = req.method;
     var url = req.url;
-    var parsingParameters = thisReference.getParsingParameters(url);
+    var parsingParameters = getParsingParameters.call(thisReference, url);
 
     //If no parsing parameters are found, is either because their is no swagger path available for the requested url
     //Or the app will return an 404 error code.
@@ -90,21 +106,6 @@ SwaggerInputValidator.prototype.all = function(){
 
   };
 };
-
-SwaggerInputValidator.prototype.getParsingParameters = function(url){
-  var swaggerPath = null;
-  for(var i = 0; i < this._parsingParameters.length; i++){
-    var regularExpression = this._parsingParameters[i].regexp;
-    var match = url.match(new RegExp(regularExpression + '/?(\\?[^/]+)?$', 'gmi'));
-    if(match){
-      if(swaggerPath){//If we enter here it means that we detected duplicated entries for the regular expression. It means that the regular expression for url parsing must be reviewed.
-        throw new Error('Duplicate swagger path for this url. Please signal this bug.');
-      }else{
-        return this._parsingParameters[i];
-      }
-    }
-  }
-}
 
 SwaggerInputValidator.prototype.get = function(url){
   var requiredParameters = this.getRequiredParameters("get", url);
