@@ -83,7 +83,7 @@ SwaggerInputValidator.prototype.all = function(){
       return;
     }
 
-    var swaggerParameters = thisReference.getRequiredParameters(verb, parsingParameters.swaggerPath);
+    var swaggerParameters = getRequiredParameters.call(thisReference, verb, parsingParameters.swaggerPath);
 
     var queryParameters = req.query;
     var pathParameters = getPathParametersFromUrl.call(thisReference, url, parsingParameters);
@@ -165,27 +165,49 @@ var getErrors = function(swaggerParameters, queryParameters, pathParameters, bod
   return errorsToReturn;
 };
 
+//Private method
+var getRequiredParameters = function(verb, url){
+  url = url.replace(/:(\w+)/gi, function myFunction(x, y){
+    return "{" + y + "}";
+  });
+  verb = verb.toLowerCase();
+
+  //If parameter is undefined it is either because the user asked for an url which is not present within the swagger file or because the url contains parameters
+  //Ex : /users/50 ==> correspond to this url in the swagger /users/{id}
+  //We then need to iterate on all the urls specified within the swagger file and see if we have an url that match
+  if(this._swaggerFile.paths[url] == undefined || this._swaggerFile.paths[url][verb] == undefined){
+    throw new Error('Their is no swagger entries for the url : ' + url + 'with the HTTP verb : '+ verb);
+    return [];
+  }
+
+  var parameters = this._swaggerFile.paths[url][verb].parameters;
+
+  if(parameters == undefined){
+    parameters = [];
+  }
+
+  return parameters;
+};
 
 SwaggerInputValidator.prototype.get = function(url){
-  var requiredParameters = this.getRequiredParameters("get", url);
+  var requiredParameters = getRequiredParameters.call(this, "get", url);
   return this.getGeneriqueMiddleware(requiredParameters);
 };
 
 SwaggerInputValidator.prototype.post = function(url){
-  var requiredParameters = this.getRequiredParameters("post", url);
+  var requiredParameters = getRequiredParameters.call(this, "post", url);
   return this.getGeneriqueMiddleware(requiredParameters);
 };
 
 SwaggerInputValidator.prototype.put = function(url){
-  var requiredParameters = this.getRequiredParameters("put", url);
+  var requiredParameters = getRequiredParameters.call(this, "put", url);
   return this.getGeneriqueMiddleware(requiredParameters);
 };
 
 SwaggerInputValidator.prototype.delete = function(url){
-  var requiredParameters = this.getRequiredParameters("delete", url);
+  var requiredParameters = getRequiredParameters.call(this, "delete", url);
   return this.getGeneriqueMiddleware(requiredParameters);
 };
-
 
 SwaggerInputValidator.prototype.getGeneriqueMiddleware = function(parameters){
 
@@ -212,31 +234,5 @@ SwaggerInputValidator.prototype.getGeneriqueMiddleware = function(parameters){
     }
   };
 };
-
-
-
-SwaggerInputValidator.prototype.getRequiredParameters = function(verb, url){
-  url = url.replace(/:(\w+)/gi, function myFunction(x, y){
-    return "{" + y + "}";
-  });
-  verb = verb.toLowerCase();
-
-  //If parameter is undefined it is either because the user asked for an url which is not present within the swagger file or because the url contains parameters
-  //Ex : /users/50 ==> correspond to this url in the swagger /users/{id}
-  //We then need to iterate on all the urls specified within the swagger file and see if we have an url that match
-  if(this._swaggerFile.paths[url] == undefined || this._swaggerFile.paths[url][verb] == undefined){
-    throw new Error('Their is no swagger entries for the url : ' + url + 'with the HTTP verb : '+ verb);
-    return [];
-  }
-
-  var parameters = this._swaggerFile.paths[url][verb].parameters;
-
-  if(parameters == undefined){
-    parameters = [];
-  }
-
-  return parameters;
-};
-
 
 exports = module.exports = SwaggerInputValidator;
