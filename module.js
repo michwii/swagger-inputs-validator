@@ -235,4 +235,14 @@ SwaggerInputValidator.prototype.delete = function(url){
   return getGeneriqueMiddleware.call(this, requiredParameters);
 };
 
+SwaggerInputValidator.prototype.patch = function(url){
+  var requiredParameters = getRequiredParameters.call(this, "patch", url);
+  return getGeneriqueMiddleware.call(this, requiredParameters);
+};
+
+SwaggerInputValidator.prototype.head = function(url){
+  var requiredParameters = getRequiredParameters.call(this, "head", url);
+  return getGeneriqueMiddleware.call(this, requiredParameters);
+};
+
 exports = module.exports = SwaggerInputValidator;
