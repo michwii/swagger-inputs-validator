@@ -5,7 +5,7 @@
 ###About
 
 Lightweight Express middleware that controls your incoming requests.
-It will reject all requests that do not respect the requirements writen in your swagger.
+It will reject all requests that do not respect the requirements written in your swagger.
 
 So far, the middleware is able to control the parameters present in :
 * req.query
@@ -18,7 +18,7 @@ Control all the requests by using an application middleware
 Control a specific route by using a route middleware
 
 ### Installation
-```
+```Shell
 $ npm install swagger-inputs-validator --save
 ```
 
@@ -89,4 +89,12 @@ var customErrorHandler = function(errors, req, res){
 };
 
 var swaggerMiddleware = new SwaggerValidator(swaggerFile, {strict : true, onError : customErrorHandler});
+```
+###Tests
+
+Unit tests have been written using Mocha.
+To launch them, please run the following command : 
+
+```Shell
+$ npm test
 ```
