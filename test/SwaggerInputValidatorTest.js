@@ -202,6 +202,14 @@ describe('format testing', function(){
     .end(done);
   })
 
+  it('should block request waiting for an int (in path) and sending a string', function(done){
+    server = createFakeServer(new swaggerInputValidator(swaggerFile).get("/users/:id"));
+    request.agent(server)
+    .get('/v1/users/ShouldNotWork')
+    .expect(400, "Error: Parameter : id does not respect its type.\n")
+    .end(done);
+  })
+
 })
 
 describe('Custom errorHandling', function(){
