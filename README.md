@@ -1,5 +1,7 @@
 # swagger-inputs-validator
 
+[![Travis Build Status](https://travis-ci.org/michwii/swagger-inputs-validator.svg?branch=master)](https://travis-ci.org/michwii/swagger-inputs-validator.svg?branch=master)
+ [![Coverage Status](https://img.shields.io/coveralls/GoogleCloudPlatform/gcloud-node.svg)](https://coveralls.io/r/GoogleCloudPlatform/gcloud-node?branch=master)
 
 ###About
 
@@ -23,7 +25,7 @@ $ npm install swagger-inputs-validator --save
 
 ###Examples
 Control a specific route :
-```
+```JavaScript
 var express = require('express');
 var SwaggerValidator = require('swagger-inputs-validator');
 var swaggerFile = require("./swagger.json");
@@ -40,7 +42,7 @@ app.listen(80)
 ```
 
 Control your entire application : 
-```
+```JavaScript
 var express = require('express');
 var SwaggerValidator = require('swagger-inputs-validator');
 var swaggerFile = require("./swagger.json");
