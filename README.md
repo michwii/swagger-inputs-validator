@@ -90,7 +90,7 @@ var customErrorHandler = function(errors, req, res){
 var swaggerMiddleware = new SwaggerValidator(swaggerFile, {strict : true, onError : customErrorHandler});
 ```
 
-###Current capabilities
+###Current release capabilities
 - [x] Parse a swagger json file (2.0 specification)
 - [ ] Parse a yam file
 - [x] checking parameters in req.query
