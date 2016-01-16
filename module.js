@@ -4,46 +4,51 @@
   @param options : [optional] options of the middleware
 */
 var SwaggerInputValidator = function(swagger, options){
-  //controls that swagger file has at least paths defined
-  if(swagger.paths){
-    this._swaggerFile = swagger;
-    this._basePath = this._swaggerFile.basePath || '';
-    if(options && typeof options != 'object'){
-      throw new Error("The parameter option in not an object");
-    }else{
-      if(options){
-        var onError = options.onError;
-        var strict = options.strict;
-        if(onError && typeof onError != 'function'){
-          throw new Error("The parameter onError in not a function");
-        }else{
-          this._onError = onError;
+  if(swagger || typeof swagger == 'object'){
+    //controls that swagger file has at least paths defined
+    if(swagger.paths){
+      this._swaggerFile = swagger;
+      this._basePath = this._swaggerFile.basePath || '';
+      if(options && typeof options != 'object'){
+        throw new Error("The parameter option in not an object");
+      }else{
+        if(options){
+          var onError = options.onError;
+          var strict = options.strict;
+          if(onError && typeof onError != 'function'){
+            throw new Error("The parameter onError in not a function");
+          }else{
+            this._onError = onError;
+          }
+
+          if(strict && typeof strict != 'boolean'){
+            throw new Error("The parameter strict in not a boolean");
+          }else{
+            this._strict = strict;
+          }
         }
 
-        if(strict && typeof strict != 'boolean'){
-          throw new Error("The parameter strict in not a boolean");
-        }else{
-          this._strict = strict;
-        }
-      }
-
-      //Now we create an array of regular expressions that we are going to check whenever a request is coming to the app.
-      this._parsingParameters = new Array();
-      var thisReference = this;
-      Object.keys(swagger.paths).forEach(function (url) {
-        var variableNames = new Array();
-        var customRegex = url.replace(/{(\w+)}/gi, function myFunction(wholeString, variableName){
-          variableNames.push(variableName);
-          return "(\\w+)";
+        //Now we create an array of regular expressions that we are going to check whenever a request is coming to the app.
+        this._parsingParameters = new Array();
+        var thisReference = this;
+        Object.keys(swagger.paths).forEach(function (url) {
+          var variableNames = new Array();
+          var customRegex = url.replace(/{(\w+)}/gi, function myFunction(wholeString, variableName){
+            variableNames.push(variableName);
+            return "(\\w+)";
+          });
+          thisReference._parsingParameters.push({regexp : customRegex, variables : variableNames, swaggerPath : url});
         });
-        thisReference._parsingParameters.push({regexp : customRegex, variables : variableNames, swaggerPath : url});
-      });
-      //End creation array of regular expression
+        //End creation array of regular expression
 
+      }
+    }else{
+      throw new Error("The swagger specified is not correct. It do not contains any paths specification");
     }
   }else{
-    throw new Error("The swagger specified is not correct. It do not contains any paths specification");
+    throw new Error("Please provide a Swagger file in json format");
   }
+
 };
 
 /**
