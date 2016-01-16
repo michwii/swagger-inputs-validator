@@ -100,7 +100,7 @@ var swaggerMiddleware = new SwaggerValidator(swaggerFile, {strict : true, onErro
 - [ ] checking parameters in req.file
 - [ ] checking arrays
 - [ ] checking string patterns (with RegExp)
-- [ ] checking variable occurences in a array
+- [ ] checking variable occurences in an array
 
 We are currently working to enhance this middleware, any contribution is welcome :)
 
