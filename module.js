@@ -113,7 +113,7 @@ var getParsingParameters = function(url){
   @param bodyParameters : the parameters present within the req.body
   @return An array of parameters that do not respect the swagger file requirements
 */
-var getErrors = function(swaggerParameters, queryParameters, pathParameters, bodyParameters, fileParameters){
+var getErrors = function(swaggerParameters, queryParameters, pathParameters, bodyParameters){
   var thisReference = this;
 
   var errorsToReturn = new Array();
@@ -134,12 +134,22 @@ var getErrors = function(swaggerParameters, queryParameters, pathParameters, bod
       case "path":
         if(pathParameters[parameter.name] == undefined && parameter.required == true){
           errorsToReturn.push(new Error("Parameter : " + parameter.name + " is not specified."));
+        }else{
+          //We now control the type. In query mode, types can only be simple types : "string", "number", "integer", "boolean", "array"
+          if(pathParameters[parameter.name] && !parameterIsRespectingItsType(pathParameters[parameter.name], parameter)){
+            errorsToReturn.push(new Error("Parameter : " + parameter.name + " does not respect its type."));
+          }
         }
       break;
       case "body":
       case "formData":
         if(bodyParameters[parameter.name] == undefined && parameter.required == true){
           errorsToReturn.push(new Error("Parameter : " + parameter.name + " is not specified."));
+        }else{
+          //We now control the type. In query mode, types can only be simple types : "string", "number", "integer", "boolean", "array"
+          if(bodyParameters[parameter.name] && !parameterIsRespectingItsType(bodyParameters[parameter.name], parameter)){
+            errorsToReturn.push(new Error("Parameter : " + parameter.name + " does not respect its type."));
+          }
         }
       break;
     }

@@ -182,6 +182,26 @@ describe('format testing', function(){
     .end(done);
   })
 
+  it('should block request waiting for integer (in body) and sending a string', function(done){
+    server = createFakeServer(new swaggerInputValidator(swaggerFile).post("/users"));
+    request.agent(server)
+    .post('/v1/users?name=Bart&surname=Simpson')
+    .set('Content-Type', 'application/json')
+    .send({sister : "Lisa", age : "should be an int"})
+    .expect(400, "Error: Parameter : age does not respect its type.\n")
+    .end(done);
+  })
+
+  it('should block request waiting for string (in body) and sending a int', function(done){
+    server = createFakeServer(new swaggerInputValidator(swaggerFile).post("/users"));
+    request.agent(server)
+    .post('/v1/users?name=Bart&surname=Simpson')
+    .set('Content-Type', 'application/json')
+    .send({sister : 1234, age : 10})
+    .expect(400, "Error: Parameter : sister does not respect its type.\n")
+    .end(done);
+  })
+
 })
 
 describe('Custom errorHandling', function(){
