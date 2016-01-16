@@ -11,11 +11,10 @@ So far, the middleware is able to control the parameters present in :
 * req.query
 * req.params
 * req.body
-* req.headers
 
 You have two ways of using this middleware :
-Control all the requests by using an application middleware
-Control a specific route by using a route middleware
+* Control all the requests by using an application middleware
+* Control a specific route by using a route middleware
 
 ### Installation
 ```Shell
@@ -24,7 +23,7 @@ $ npm install swagger-inputs-validator --save
 
 ###Examples
 
-#####Control your entire application : 
+#####Controls your entire application : 
 ```JavaScript
 var express = require('express');
 var SwaggerValidator = require('swagger-inputs-validator');
@@ -43,7 +42,7 @@ app.listen(80);
 
 ```
 
-#####Control a specific route :
+#####Controls a specific route :
 ```JavaScript
 var express = require('express');
 var SwaggerValidator = require('swagger-inputs-validator');
@@ -90,6 +89,21 @@ var customErrorHandler = function(errors, req, res){
 
 var swaggerMiddleware = new SwaggerValidator(swaggerFile, {strict : true, onError : customErrorHandler});
 ```
+
+###Current capabilities
+- [x] checking parameters in req.query
+- [x] checking parameters in req.body
+- [x] checking parameters in req.params
+- [ ] checking parameters in req.headers
+- [x] checking optinal variables
+- [x] checking variable types string | integer | double | boolean
+- [ ] checking parameters in req.file
+- [ ] checking arrays
+- [ ] checking string patterns (with RegExp)
+- [ ] checking variable occurences in an array
+
+We are currently working to enhance this middleware, any contribution is welcome :)
+
 ###Tests
 
 Unit tests have been written using Mocha.
