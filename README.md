@@ -1,7 +1,6 @@
 # swagger-inputs-validator
 
 [![Travis Build Status](https://travis-ci.org/michwii/swagger-inputs-validator.svg?branch=master)](https://travis-ci.org/michwii/swagger-inputs-validator.svg?branch=master)
- [![Coverage Status](https://img.shields.io/coveralls/GoogleCloudPlatform/gcloud-node.svg)](https://coveralls.io/r/GoogleCloudPlatform/gcloud-node?branch=master)
 
 ###About
 
