@@ -98,7 +98,7 @@ describe('When parameters are missing', function(){
   it('should return an HTTP 400 code when only one parameter is missing (GET/query)', function(done){
     server = createFakeServer(new swaggerInputValidator(swaggerFile).get("/products"));
     request.agent(server)
-    .get('/products?longitude=50')
+    .get('/v1/products?longitude=50')
     .expect(400, "Error: Parameter : latitude is not specified.\n")
     .end(done);
   });
@@ -106,7 +106,7 @@ describe('When parameters are missing', function(){
   it('should return an HTTP 400 code when only one parameter is missing (GET/query)', function(done){
     server = createFakeServer(new swaggerInputValidator(swaggerFile).get("/products"));
     request.agent(server)
-    .get('/products?latitude=50')
+    .get('/v1/products?latitude=50')
     .expect(400, "Error: Parameter : longitude is not specified.\n")
     .end(done);
   });
@@ -114,7 +114,7 @@ describe('When parameters are missing', function(){
   it('should return an HTTP 400 code when all parameters are missing (GET/query)', function(done){
     server = createFakeServer(new swaggerInputValidator(swaggerFile).get("/products"));
     request.agent(server)
-    .get('/products')
+    .get('/v1/products')
     .expect(400, "Error: Parameter : latitude is not specified.,Error: Parameter : longitude is not specified.\n")
     .end(done);
   });
@@ -122,7 +122,7 @@ describe('When parameters are missing', function(){
   it('should return an HTTP 400 code when parameters are missing (POST / query + body)', function(done){
     server = createFakeServer(new swaggerInputValidator(swaggerFile).post("/users"));
     request.agent(server)
-    .post('/users?name=Bart')
+    .post('/v1/users?name=Bart')
     .set('Content-Type', 'application/json')
     .send({age : 9})
     .expect(400, "Error: Parameter : surname is not specified.,Error: Parameter : sister is not specified.\n")
@@ -132,7 +132,7 @@ describe('When parameters are missing', function(){
   it('should return an HTTP 400 code when parameters are missing (PUT / query + body)', function(done){
     server = createFakeServer(new swaggerInputValidator(swaggerFile).put("/users"));
     request.agent(server)
-    .put('/users?surname=Simpson')
+    .put('/v1/users?surname=Simpson')
     .set('Content-Type', 'application/json')
     .send({sister : 'Lisa'})
     .expect(400, "Error: Parameter : name is not specified.,Error: Parameter : age is not specified.\n")
@@ -142,7 +142,7 @@ describe('When parameters are missing', function(){
   it('should return an HTTP 400 code when parameters are missing (DELETE / query)', function(done){
     server = createFakeServer(new swaggerInputValidator(swaggerFile).delete("/users"));
     request.agent(server)
-    .delete('/users?surname=Simpson')
+    .delete('/v1/users?surname=Simpson')
     .expect(400, "Error: Parameter : name is not specified.\n")
     .end(done);
   });
@@ -163,21 +163,21 @@ describe('Custom errorHandling', function(){
 
   it('should return an HTTP 501 code when all parameters are missing', function(done){
     request.agent(server)
-    .get('/products')
+    .get('/v1/products')
     .expect(501, {error : "Custom Error"})
     .end(done);
   });
 
   it('should return an HTTP 501 code when only one parameter is missing', function(done){
     request.agent(server)
-    .get('/products?longitude=50')
+    .get('/v1/products?longitude=50')
     .expect(501, {error : "Custom Error"})
     .end(done);
   });
 
   it('should return an HTTP 501 code when only one parameter is missing', function(done){
     request.agent(server)
-    .get('/products?latitude=50')
+    .get('/v1/products?latitude=50')
     .expect(501, {error : "Custom Error"})
     .end(done);
   });
@@ -193,14 +193,14 @@ describe('strict / no strict mode', function(){
 
   it('should return an HTTP 200 code when extra is provided and strict = false', function(done){
     request.agent(serverNotInStrictMode)
-    .get('/products?longitude=50&latitude=50&extraParameter=shouldNotWork')
+    .get('/v1/products?longitude=50&latitude=50&extraParameter=shouldNotWork')
     .expect(200, { success: 'If you can enter here, it means that the swagger middleware let you do so' })
     .end(done);
   });
 
   it('should return an HTTP 400 code when extra parameters are provided and strict = true', function(done){
     request.agent(serverInStrictMode)
-    .get('/products?longitude=50&latitude=50&extraParameter=shouldNotWork')
+    .get('/v1/products?longitude=50&latitude=50&extraParameter=shouldNotWork')
     .expect(400, "Error: Parameter : extraParameter should not be specified.\n")
     .end(done);
   });
@@ -217,28 +217,28 @@ describe('Parameter that are not required', function(){
 
   it('should return an HTTP 200 code when optional parameter is provided in strict mode', function(done){
     request.agent(serverInStrictMode)
-    .get('/products?longitude=50&latitude=50&optional=IamOptionalButPresentWithinTheSwaggerFile')
+    .get('/v1/products?longitude=50&latitude=50&optional=IamOptionalButPresentWithinTheSwaggerFile')
     .expect(200, { success: 'If you can enter here, it means that the swagger middleware let you do so' })
     .end(done);
   });
 
   it('should return an HTTP 200 code when optional parameter is provided not in strict mode', function(done){
     request.agent(serverNotInStrictMode)
-    .get('/products?longitude=50&latitude=50&optional=IamOptionalButPresentWithinTheSwaggerFile')
+    .get('/v1/products?longitude=50&latitude=50&optional=IamOptionalButPresentWithinTheSwaggerFile')
     .expect(200, { success: 'If you can enter here, it means that the swagger middleware let you do so' })
     .end(done);
   });
 
   it('should return an HTTP 200 code when optional parameter is not provided in strict mode', function(done){
     request.agent(serverInStrictMode)
-    .get('/products?longitude=50&latitude=50')
+    .get('/v1/products?longitude=50&latitude=50')
     .expect(200, { success: 'If you can enter here, it means that the swagger middleware let you do so' })
     .end(done);
   });
 
   it('should return an HTTP 200 code when optional parameter is not provided not in strict mode', function(done){
     request.agent(serverNotInStrictMode)
-    .get('/products?longitude=50&latitude=50')
+    .get('/v1/products?longitude=50&latitude=50')
     .expect(200, { success: 'If you can enter here, it means that the swagger middleware let you do so' })
     .end(done);
   });
@@ -255,7 +255,7 @@ describe('All parameters provided', function(){
 
   it('should return an HTTP 200 code when all parameters are provided in query', function(done){
     request.agent(server)
-    .get('/products?longitude=50&latitude=50')
+    .get('/v1/products?longitude=50&latitude=50')
     .expect(200, { success: 'If you can enter here, it means that the swagger middleware let you do so' })
     .end(done);
   });
@@ -263,19 +263,19 @@ describe('All parameters provided', function(){
   it('should return an HTTP 200 code when one parameter is provided in path', function(done){
 
     var app = express();
-    app.get('/user/:id', new swaggerInputValidator(swaggerFile, {strict: true}).get("/users/:id"), function(req, res){
+    app.get('/v1/user/:id', new swaggerInputValidator(swaggerFile, {strict: true}).get("/users/:id"), function(req, res){
       res.status(200).json({ success: 'If you can enter here, it means that the swagger middleware let you do so' });
     });
 
     request.agent(app)
-    .get('/user/50')
+    .get('/v1/user/50')
     .expect(200, { success: 'If you can enter here, it means that the swagger middleware let you do so' })
     .end(done);
   });
 
   it('should return an HTTP 200 code when optional parameter is provided also in query', function(done){
     request.agent(server)
-    .get('/products?longitude=50&latitude=50&optional=IamOptionalButPresentWithinTheSwaggerFile')
+    .get('/v1/products?longitude=50&latitude=50&optional=IamOptionalButPresentWithinTheSwaggerFile')
     .expect(200, { success: 'If you can enter here, it means that the swagger middleware let you do so' })
     .end(done);
   });
@@ -283,7 +283,7 @@ describe('All parameters provided', function(){
   it('should return an HTTP 200 code in POST (query + body)', function(done){
     server = createFakeServer(new swaggerInputValidator(swaggerFile).post("/users"));
     request.agent(server)
-    .post('/users?name=Bart&surname=Simpson')
+    .post('/v1/users?name=Bart&surname=Simpson')
     .set('Content-Type', 'application/json')
     .send({age : 9, sister: "Lisa Simpson"})
     .expect(200, { success: 'If you can enter here, it means that the swagger middleware let you do so' })
@@ -293,7 +293,7 @@ describe('All parameters provided', function(){
   it('should return an HTTP 200 code in POST (query + body)', function(done){
     server = createFakeServer(new swaggerInputValidator(swaggerFile).put("/users"));
     request.agent(server)
-    .put('/users?name=Bart&surname=Simpson')
+    .put('/v1/users?name=Bart&surname=Simpson')
     .set('Content-Type', 'application/json')
     .send({age : 9, sister: "Lisa Simpson"})
     .expect(200, { success: 'If you can enter here, it means that the swagger middleware let you do so' })
@@ -311,8 +311,24 @@ describe('Control all requests',function(){
 
   it('Should accept the request when path parameter is correct', function(done){
     request.agent(server)
-    .get('/users/50')
+    .get('/v1/users/50')
     .expect(200)
+    .end(done);
+  })
+
+  it('Should reject the request when a query parameter is missing', function(done){
+    request.agent(server)
+    .get('/v1/products?latitude=50')
+    .expect(400)
+    .end(done);
+  })
+
+  it('Should reject the request when a body parameter is missing', function(done){
+    request.agent(server)
+    .post('/v1/users?name=Bart&surname=Simpson')
+    .set('Content-Type', 'application/json')
+    .send({age : 9})
+    .expect(400)
     .end(done);
   })
 
