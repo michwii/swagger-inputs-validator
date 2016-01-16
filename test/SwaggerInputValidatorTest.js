@@ -203,8 +203,13 @@ describe('format testing', function(){
   })
 
   it('should block request waiting for an int (in path) and sending a string', function(done){
-    server = createFakeServer(new swaggerInputValidator(swaggerFile).get("/users/:id"));
-    request.agent(server)
+
+    var app = express();
+    app.get('/v1/users/:id', new swaggerInputValidator(swaggerFile).get("/users/:id"), function(req, res){
+      res.status(200).json({ success: 'If you can enter here, it means that the swagger middleware let you do so' });
+    });
+
+    request.agent(app)
     .get('/v1/users/ShouldNotWork')
     .expect(400, "Error: Parameter : id does not respect its type.\n")
     .end(done);

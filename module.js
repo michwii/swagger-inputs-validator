@@ -270,6 +270,9 @@ var getGeneriqueMiddleware = function(swaggerParameters){
 
     var queryParameters = req.query;
     var pathParameters = req.params;
+    if(req.url == '/v1/users/ShouldNotWork'){
+      console.log(req)
+    }
     //In get request, the body equals to null, this is why we need to instanciate it to {}
     var bodyParameters = (req.body) ? req.body : {};
 
