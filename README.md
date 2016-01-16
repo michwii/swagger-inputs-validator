@@ -7,10 +7,10 @@ Lightweight Express middleware that controls your incoming requests.
 It will reject all requests that do not respect the requirements writen in your swagger.
 
 So far, the middleware is able to control the parameters present in :
-req.query
-req.params
-req.body
-req.headers
+*req.query
+*req.params
+*req.body
+*req.headers
 
 You have two ways of using this middleware :
 Control all the requests by using an application middleware
