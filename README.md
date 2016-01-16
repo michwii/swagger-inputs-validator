@@ -91,6 +91,8 @@ var swaggerMiddleware = new SwaggerValidator(swaggerFile, {strict : true, onErro
 ```
 
 ###Current capabilities
+- [x] Parse a swagger file (2.0 specification)
+- [ ] Parse a yam file
 - [x] checking parameters in req.query
 - [x] checking parameters in req.body
 - [x] checking parameters in req.params
