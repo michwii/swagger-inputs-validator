@@ -4,6 +4,7 @@
   @param options : [optional] options of the middleware
 */
 var SwaggerInputValidator = function(swagger, options){
+  //We control that the first parameter (swagger) is present and its type is an object
   if(swagger || typeof swagger == 'object'){
     //controls that swagger file has at least paths defined
     if(swagger.paths){
