@@ -7,6 +7,7 @@ var SwaggerInputValidator = function(swagger, options){
   //controls that swagger file has at least paths defined
   if(swagger.paths){
     this._swaggerFile = swagger;
+    this._basePath = this._swaggerFile.basePath || '';
     if(options && typeof options != 'object'){
       throw new Error("The parameter option in not an object");
     }else{
@@ -87,7 +88,7 @@ var getParsingParameters = function(url){
   var swaggerPath = null;
   for(var i = 0; i < this._parsingParameters.length; i++){
     var regularExpression = this._parsingParameters[i].regexp;
-    var match = url.match(new RegExp(regularExpression + '/?(\\?[^/]+)?$', 'gmi'));
+    var match = url.match(new RegExp(this._basePath + regularExpression + '/?(\\?[^/]+)?$', 'gmi'));
     if(match){
       if(swaggerPath){//If we enter here it means that we detected duplicated entries for the regular expression. It means that the regular expression for url parsing must be reviewed.
         throw new Error('Duplicate swagger path for this url. Please signal this bug.');
