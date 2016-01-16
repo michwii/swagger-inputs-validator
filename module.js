@@ -113,7 +113,7 @@ var getParsingParameters = function(url){
   @param bodyParameters : the parameters present within the req.body
   @return An array of parameters that do not respect the swagger file requirements
 */
-var getErrors = function(swaggerParameters, queryParameters, pathParameters, bodyParameters){
+var getErrors = function(swaggerParameters, queryParameters, pathParameters, bodyParameters, fileParameters){
   var thisReference = this;
 
   var errorsToReturn = new Array();
@@ -123,7 +123,13 @@ var getErrors = function(swaggerParameters, queryParameters, pathParameters, bod
       case "query":
         if(queryParameters[parameter.name] == undefined && parameter.required == true){
           errorsToReturn.push(new Error("Parameter : " + parameter.name + " is not specified."));
+        }else{
+          //We now control the type. In query mode, types can only be simple types : "string", "number", "integer", "boolean", "array"
+          if(queryParameters[parameter.name] && !parameterIsRespectingItsType(queryParameters[parameter.name], parameter)){
+            errorsToReturn.push(new Error("Parameter : " + parameter.name + " does not respect its type."));
+          }
         }
+
       break;
       case "path":
         if(pathParameters[parameter.name] == undefined && parameter.required == true){
@@ -131,6 +137,7 @@ var getErrors = function(swaggerParameters, queryParameters, pathParameters, bod
         }
       break;
       case "body":
+      case "formData":
         if(bodyParameters[parameter.name] == undefined && parameter.required == true){
           errorsToReturn.push(new Error("Parameter : " + parameter.name + " is not specified."));
         }
@@ -169,6 +176,48 @@ var getErrors = function(swaggerParameters, queryParameters, pathParameters, bod
     });
   }
   return errorsToReturn;
+};
+
+/**
+  @param parameterToControl : parameter sent by the user and that has to be controled against the swagger specification
+  @param typeToEnforce : the swagger type to control
+  @return true / false
+*/
+var parameterIsRespectingItsType = function(parameterToControl, swaggerParameter){
+
+  var filterInt = function (value) {
+    if(/^(\-|\+)?([0-9]+|Infinity)$/.test(value))
+      return Number(value);
+    return NaN;
+  }
+
+  var filterFloat = function (value) {
+    if(/^(\-|\+)?([0-9]+(\.[0-9]+)?|Infinity)$/
+        .test(value))
+        return Number(value);
+    return NaN;
+  }
+
+
+  //let's check first its type
+  switch(swaggerParameter.type){
+    case 'integer':
+      return !isNaN(filterInt(parameterToControl));
+    break;
+    case 'number':
+      if(swaggerParameter.format == 'double' || swaggerParameter.format == 'float'){
+        return !isNaN(filterFloat(parameterToControl));
+      }
+      return !isNaN(filterInt(parameterToControl));
+    break;
+    case 'array' :
+      return Object.prototype.toString.call(parameterToControl) === '[object Array]';
+    break;
+    default :
+      return typeof parameterToControl == swaggerParameter.type
+    break;
+  }
+
 };
 
 /**

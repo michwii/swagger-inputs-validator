@@ -149,7 +149,40 @@ describe('When parameters are missing', function(){
 
 });
 
+describe('format testing', function(){
+  it('should block request waiting for a non proper double', function(done){
+    server = createFakeServer(new swaggerInputValidator(swaggerFile).get("/products"));
+    request.agent(server)
+    .get('/v1/products?longitude=50.0.0&latitude=50')
+    .expect(400, "Error: Parameter : longitude does not respect its type.\n")
+    .end(done);
+  });
 
+  it('should block request waiting for double and sending instead string', function(done){
+    server = createFakeServer(new swaggerInputValidator(swaggerFile).get("/products"));
+    request.agent(server)
+    .get('/v1/products?longitude=should not work&latitude=50')
+    .expect(400, "Error: Parameter : longitude does not respect its type.\n")
+    .end(done);
+  })
+
+  it('should block request waiting for integer and sending a float', function(done){
+    server = createFakeServer(new swaggerInputValidator(swaggerFile).get("/products"));
+    request.agent(server)
+    .get('/v1/products?longitude=50&latitude=50&optionalInt=50.50')
+    .expect(400, "Error: Parameter : optionalInt does not respect its type.\n")
+    .end(done);
+  })
+
+  it('should block request waiting for integer and sending a string', function(done){
+    server = createFakeServer(new swaggerInputValidator(swaggerFile).get("/products"));
+    request.agent(server)
+    .get('/v1/products?longitude=50&latitude=50&optionalInt=shouldGoInError')
+    .expect(400, "Error: Parameter : optionalInt does not respect its type.\n")
+    .end(done);
+  })
+
+})
 
 describe('Custom errorHandling', function(){
   var server;

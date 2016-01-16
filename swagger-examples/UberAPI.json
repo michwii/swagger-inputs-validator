@@ -23,7 +23,7 @@
                         "name": "id",
                         "in": "path",
                         "required": true,
-                        "type": "number",
+                        "type": "integer",
                         "format": "int32"
                     }
                 ],
@@ -54,7 +54,7 @@
                         "name": "age",
                         "in": "body",
                         "required": true,
-                        "type": "number"
+                        "type": "integer"
                     },
                     {
                         "name": "sister",
@@ -149,10 +149,16 @@
                     {
                         "name": "optional",
                         "in": "query",
-                        "description": "Longitude component of location.",
+                        "description": "optional parameter.",
                         "required": false,
-                        "type": "number",
-                        "format": "double"
+                        "type": "string"
+                    },
+                    {
+                        "name": "optionalInt",
+                        "in": "query",
+                        "description": "optional parameter but in Int Format.",
+                        "required": false,
+                        "type": "integer"
                     }
                 ],
                 "tags": [
