@@ -23,7 +23,7 @@ $ npm install swagger-inputs-validator --save
 
 ###Examples
 
-#####Control your entire application : 
+#####Controls your entire application : 
 ```JavaScript
 var express = require('express');
 var SwaggerValidator = require('swagger-inputs-validator');
@@ -42,7 +42,7 @@ app.listen(80);
 
 ```
 
-#####Control a specific route :
+#####Controls a specific route :
 ```JavaScript
 var express = require('express');
 var SwaggerValidator = require('swagger-inputs-validator');
