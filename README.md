@@ -1,5 +1,5 @@
 # swagger-inputs-validator
-
+[![npm version](https://badge.fury.io/js/swagger-inputs-validator.svg)](https://badge.fury.io/js/swagger-inputs-validator)
 [![Travis Build Status](https://travis-ci.org/michwii/swagger-inputs-validator.svg?branch=master)](https://travis-ci.org/michwii/swagger-inputs-validator.svg?branch=master)
 
 ###About
