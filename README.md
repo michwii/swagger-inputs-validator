@@ -37,9 +37,9 @@ app.use(swaggerMiddleware.all());
 
 app.get('/products', function(req,res){
   res.json({success: 'If you can enter here it seems that swagger validator let you get in'});
-})
+});
 
-app.listen(80)
+app.listen(80);
 
 ```
 
@@ -54,9 +54,9 @@ var swaggerMiddleware = new SwaggerValidator(swaggerFile);
 
 app.get('/products', swaggerMiddleware.get('/products'), function(req,res){
   res.json({success: 'If you can enter here it seems that swagger validator let you get in'});
-})
+});
 
-app.listen(80)
+app.listen(80);
 
 ```
 
