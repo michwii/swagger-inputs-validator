@@ -215,6 +215,36 @@ describe('format testing', function(){
     .end(done);
   })
 
+  it('should block request waiting for boolean (in body) and sending a string', function(done){
+    server = createFakeServer(new swaggerInputValidator(swaggerFile).post("/users"));
+    request.agent(server)
+    .post('/v1/users?name=Bart&surname=Simpson')
+    .set('Content-Type', 'application/json')
+    .send({sister : 'Lisa', age : 10, optionalBoolean : 'shouldNotWork'})
+    .expect(400, "Error: Parameter : optionalBoolean does not respect its type.\n")
+    .end(done);
+  })
+
+  it('should block request waiting for boolean (in body) and sending a string which looks like a boolean', function(done){
+    server = createFakeServer(new swaggerInputValidator(swaggerFile).post("/users"));
+    request.agent(server)
+    .post('/v1/users?name=Bart&surname=Simpson')
+    .set('Content-Type', 'application/json')
+    .send({sister : 'Lisa', age : 10, optionalBoolean : 'true'})
+    .expect(400, "Error: Parameter : optionalBoolean does not respect its type.\n")
+    .end(done);
+  })
+
+  it('should block request waiting for boolean (as formData) and sending a string which looks like a boolean', function(done){
+    server = createFakeServer(new swaggerInputValidator(swaggerFile).post("/users"));
+    request.agent(server)
+    .post('/v1/users?name=Bart&surname=Simpson')
+    .type('form')
+    .send({sister : 'Lisa', age : 10, optionalBooleanFormData : 'true'})
+    .expect(400, "Error: Parameter : optionalBooleanFormData does not respect its type.\n")
+    .end(done);
+  })
+
 })
 
 describe('Custom errorHandling', function(){

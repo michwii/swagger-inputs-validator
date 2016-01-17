@@ -95,6 +95,20 @@
                         "in": "body",
                         "required": true,
                         "type": "string"
+                    },
+                    {
+                        "name": "optionalBoolean",
+                        "in": "body",
+                        "description": "optional parameter but in boolean Format.",
+                        "required": false,
+                        "type": "boolean"
+                    },
+                    {
+                        "name": "optionalBooleanFormData",
+                        "in": "formData",
+                        "description": "optional parameter but in boolean Format.",
+                        "required": false,
+                        "type": "boolean"
                     }
                 ],
                 "tags": [

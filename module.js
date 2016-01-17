@@ -212,9 +212,15 @@ var parameterIsRespectingItsType = function(parameterToControl, swaggerParameter
   //let's check first its type
   switch(swaggerParameter.type){
     case 'integer':
+      if(swaggerParameter.in == 'body' || swaggerParameter.in == 'formData'){
+        return typeof parameterToControl == 'number';
+      }
       return !isNaN(filterInt(parameterToControl));
     break;
     case 'number':
+      if(swaggerParameter.in == 'body' || swaggerParameter.in == 'formData'){
+        return typeof parameterToControl == 'number'
+      }
       if(swaggerParameter.format == 'double' || swaggerParameter.format == 'float'){
         return !isNaN(filterFloat(parameterToControl));
       }
@@ -222,6 +228,14 @@ var parameterIsRespectingItsType = function(parameterToControl, swaggerParameter
     break;
     case 'array' :
       return Object.prototype.toString.call(parameterToControl) === '[object Array]';
+    break;
+    case 'boolean':
+      //If the data is sent as row data in the body or as formData consider it as real boolean
+      if(swaggerParameter.in == 'body' || swaggerParameter.in == 'formData'){
+        return typeof parameterToControl == 'boolean'
+      }else{//Otherwise consider it as a string that has to be parsed
+        return parameterToControl === 'true' || parameterToControl === 'false'
+      }
     break;
     default :
       return typeof parameterToControl == swaggerParameter.type
