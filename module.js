@@ -209,6 +209,35 @@ var parameterIsRespectingItsType = function(parameterToControl, swaggerParameter
   }
 
 
+  if(swaggerParameter.in == 'body'){
+      //We need to get the schema model and check if the incoming parameter respect it
+      return true;
+  }else{
+    //The parameter is specified either in query / path / header or formData
+    //Therefor it means that the incoming parameter is a for sure a string but me have to check anyway its type
+    //let's check first its type
+    switch(swaggerParameter.type){
+      case 'integer':
+        //ToDo check format, min, max
+        return !isNaN(filterInt(parameterToControl));
+      break;
+      case 'number':
+        //ToDo check format, min, max
+        if(swaggerParameter.format == 'double' || swaggerParameter.format == 'float'){
+          return !isNaN(filterFloat(parameterToControl));
+        }
+        return !isNaN(filterInt(parameterToControl));
+      break;
+      case 'boolean':
+        return parameterToControl === 'true' || parameterToControl === 'false'
+      break;
+      case 'string' :
+        //ToDo check its format
+        return true;
+      break;
+    }
+  }
+  /*
   //let's check first its type
   switch(swaggerParameter.type){
     case 'integer':
@@ -241,6 +270,7 @@ var parameterIsRespectingItsType = function(parameterToControl, swaggerParameter
       return typeof parameterToControl == swaggerParameter.type
     break;
   }
+  */
 
 };
 
