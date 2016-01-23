@@ -133,7 +133,7 @@ var getErrors = function(swaggerParameters, queryParameters, pathParameters, bod
           errorsToReturn.push(new Error("Parameter : " + parameter.name + " is not specified."));
         }else{
           //We now control the type. In query mode, types can only be simple types : "string", "number", "integer", "boolean", "array"
-          if(queryParameters[parameter.name] && !parameterIsRespectingItsType.call(thisReference, queryParameters[parameter.name], parameter)){
+          if(queryParameters[parameter.name] && !simpleTypeChecking.call(thisReference, queryParameters[parameter.name], parameter)){
             errorsToReturn.push(new Error("Parameter : " + parameter.name + " does not respect its type."));
           }
         }
@@ -143,18 +143,29 @@ var getErrors = function(swaggerParameters, queryParameters, pathParameters, bod
           errorsToReturn.push(new Error("Parameter : " + parameter.name + " is not specified."));
         }else{
           //We now control the type. In path mode, types can only be simple types : "string", "number", "integer", "boolean", "array"
-          if(pathParameters[parameter.name] && !parameterIsRespectingItsType.call(thisReference, pathParameters[parameter.name], parameter)){
+          if(pathParameters[parameter.name] && !simpleTypeChecking.call(thisReference, pathParameters[parameter.name], parameter)){
             errorsToReturn.push(new Error("Parameter : " + parameter.name + " does not respect its type."));
           }
         }
       break;
       case "body":
+        if(bodyParameters[parameter.name] == undefined && parameter.required == true){
+          errorsToReturn.push(new Error("Parameter : " + parameter.name + " is not specified."));
+        }else{
+          //If the parameter name is ""it means that the object will not be encapsuled and will be sent directly within the body playload
+          //We now control the type. In body mode, types are complex
+          var paramsToCheck = (parameter.name == "") ? bodyParameters : bodyParameters[parameter.name];
+          if(bodyParameters[parameter.name] && !complexTypeChecking.call(thisReference, paramsToCheck, parameter)){
+            errorsToReturn.push(new Error("Parameter : " + parameter.name + " does not respect its type."));
+          }
+        }
+        break;
       case "formData":
         if(bodyParameters[parameter.name] == undefined && parameter.required == true){
           errorsToReturn.push(new Error("Parameter : " + parameter.name + " is not specified."));
         }else{
           //We now control the type. In body mode, types are complex
-          if(bodyParameters[parameter.name] && !parameterIsRespectingItsType.call(thisReference, bodyParameters[parameter.name], parameter)){
+          if(bodyParameters[parameter.name] && !simpleTypeChecking.call(thisReference, bodyParameters[parameter.name], parameter)){
             errorsToReturn.push(new Error("Parameter : " + parameter.name + " does not respect its type."));
           }
         }
@@ -196,6 +207,7 @@ var getErrors = function(swaggerParameters, queryParameters, pathParameters, bod
 };
 
 /**
+  Private method
   ToDo verify this method.
   @param swaggerReference, a reference to a swagger object ==> "$rel" : "#/definitions/myModel"
   @return the desired model
@@ -211,11 +223,12 @@ var getObjectFromSwaggerReference = function (swaggerReference){
 };
 
 /**
+  Private method
   @param objectToControl is an object coming from req.body
   @param swaggerModel from which we have to perform the controls
   @return true/false
 */
-var modelRespectsItsType = function(objectToControl, swaggerModel){
+var complexTypeChecking = function(objectToControl, swaggerModel){
 
   if(swaggerModel['$ref']){
     swaggerModel = getObjectFromSwaggerReference.call(this, swaggerModel['$ref']);
@@ -249,11 +262,13 @@ var modelRespectsItsType = function(objectToControl, swaggerModel){
 };
 
 /**
+  Private method
   @param parameterToControl : parameter sent by the user and that has to be controled against the swagger specification
   @param typeToEnforce : the swagger type to control
+  The parameter that has been sent is string typed. (because coming from path or query or header)
   @return true / false
 */
-var parameterIsRespectingItsType = function(parameterToControl, swaggerParameter){
+var simpleTypeChecking = function(parameterToControl, swaggerParameter){
 
   var filterInt = function (value) {
     if(/^(\-|\+)?([0-9]+|Infinity)$/.test(value))
@@ -268,34 +283,30 @@ var parameterIsRespectingItsType = function(parameterToControl, swaggerParameter
     return NaN;
   }
 
-  if(swaggerParameter.in == 'body'){
-      //We need to get the schema model and check if the incoming parameter respects it
-      return modelRespectsItsType.call(this, parameterToControl, swaggerParameter.schema);
-  }else{
-    //The parameter is specified either in query / path / header or formData
-    //Therefor it means that the incoming parameter is a for sure a string but me have to check anyway its type
-    //let's check first its type
-    switch(swaggerParameter.type){
-      case 'integer':
-        //ToDo check format, min, max
-        return !isNaN(filterInt(parameterToControl));
-      break;
-      case 'number':
-        //ToDo check format, min, max
-        if(swaggerParameter.format == 'double' || swaggerParameter.format == 'float'){
-          return !isNaN(filterFloat(parameterToControl));
-        }
-        return !isNaN(filterInt(parameterToControl));
-      break;
-      case 'boolean':
-        return parameterToControl === 'true' || parameterToControl === 'false'
-      break;
-      case 'string' :
-        //ToDo check its format
-        return true;
-      break;
-    }
+  //The parameter is specified either in query / path / header or formData
+  //Therefor it means that the incoming parameter is a for sure a string but me have to check anyway its type
+  //let's check first its type
+  switch(swaggerParameter.type){
+    case 'integer':
+      //ToDo check format, min, max
+      return !isNaN(filterInt(parameterToControl));
+    break;
+    case 'number':
+      //ToDo check format, min, max
+      if(swaggerParameter.format == 'double' || swaggerParameter.format == 'float'){
+        return !isNaN(filterFloat(parameterToControl));
+      }
+      return !isNaN(filterInt(parameterToControl));
+    break;
+    case 'boolean':
+      return parameterToControl === 'true' || parameterToControl === 'false'
+    break;
+    case 'string' :
+      //ToDo check its format
+      return true;
+    break;
   }
+
 };
 
 /**
