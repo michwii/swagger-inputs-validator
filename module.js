@@ -42,6 +42,14 @@ var SwaggerInputValidator = function(swagger, options){
         });
         //End creation array of regular expression
 
+        //We need now to parse all the models
+        thisReference._models = new Array();
+        Object.keys(swagger.definitions).forEach(function (model) {
+          thisReference._models.push(model)
+        });
+        //End parse all the models
+
+
       }
     }else{
       throw new Error("The swagger specified is not correct. It do not contains any paths specification");
@@ -125,18 +133,17 @@ var getErrors = function(swaggerParameters, queryParameters, pathParameters, bod
           errorsToReturn.push(new Error("Parameter : " + parameter.name + " is not specified."));
         }else{
           //We now control the type. In query mode, types can only be simple types : "string", "number", "integer", "boolean", "array"
-          if(queryParameters[parameter.name] && !parameterIsRespectingItsType(queryParameters[parameter.name], parameter)){
+          if(queryParameters[parameter.name] && !parameterIsRespectingItsType.call(thisReference, queryParameters[parameter.name], parameter)){
             errorsToReturn.push(new Error("Parameter : " + parameter.name + " does not respect its type."));
           }
         }
-
       break;
       case "path":
         if(pathParameters[parameter.name] == undefined && parameter.required == true){
           errorsToReturn.push(new Error("Parameter : " + parameter.name + " is not specified."));
         }else{
-          //We now control the type. In query mode, types can only be simple types : "string", "number", "integer", "boolean", "array"
-          if(pathParameters[parameter.name] && !parameterIsRespectingItsType(pathParameters[parameter.name], parameter)){
+          //We now control the type. In path mode, types can only be simple types : "string", "number", "integer", "boolean", "array"
+          if(pathParameters[parameter.name] && !parameterIsRespectingItsType.call(thisReference, pathParameters[parameter.name], parameter)){
             errorsToReturn.push(new Error("Parameter : " + parameter.name + " does not respect its type."));
           }
         }
@@ -146,8 +153,8 @@ var getErrors = function(swaggerParameters, queryParameters, pathParameters, bod
         if(bodyParameters[parameter.name] == undefined && parameter.required == true){
           errorsToReturn.push(new Error("Parameter : " + parameter.name + " is not specified."));
         }else{
-          //We now control the type. In query mode, types can only be simple types : "string", "number", "integer", "boolean", "array"
-          if(bodyParameters[parameter.name] && !parameterIsRespectingItsType(bodyParameters[parameter.name], parameter)){
+          //We now control the type. In body mode, types are complex
+          if(bodyParameters[parameter.name] && !parameterIsRespectingItsType.call(thisReference, bodyParameters[parameter.name], parameter)){
             errorsToReturn.push(new Error("Parameter : " + parameter.name + " does not respect its type."));
           }
         }
@@ -189,6 +196,59 @@ var getErrors = function(swaggerParameters, queryParameters, pathParameters, bod
 };
 
 /**
+  ToDo verify this method.
+  @param swaggerReference, a reference to a swagger object ==> "$rel" : "#/definitions/myModel"
+  @return the desired model
+*/
+var getObjectFromSwaggerReference = function (swaggerReference){
+  swaggerReference = swaggerReference.replace('#', '');
+  var pathToDigInto = swaggerReference.split('/');
+  var objectToReturn = this._swaggerFile;
+  for (var i = 1; i < pathToDigInto.length; i++){
+    objectToReturn = objectToReturn[pathToDigInto[i]];
+  }
+  return objectToReturn;
+};
+
+/**
+  @param objectToControl is an object coming from req.body
+  @param swaggerModel from which we have to perform the controls
+  @return true/false
+*/
+var modelRespectsItsType = function(objectToControl, swaggerModel){
+
+  if(swaggerModel['$ref']){
+    swaggerModel = getObjectFromSwaggerReference.call(this, swaggerModel['$ref']);
+  }
+
+  switch(swaggerModel.type){
+    case 'object':
+      var objectIsCompliant = true;
+      Object.keys(swaggerModel.properties).forEach(function (variableName) {
+        objectIsCompliant = objectIsCompliant && modelRespectsItsType.call(this, objectToControl[variableName], swaggerModel.properties[variableName]);
+      });
+      return objectIsCompliant;
+    break;
+    case 'array' :
+      if(Object.prototype.toString.call(objectToControl) != '[object Array]'){
+        return false;
+      }
+      var objectIsCompliant = true;
+      for(var i = 0; i < objectToControl.length; i++){
+        objectIsCompliant = objectIsCompliant && modelRespectsItsType.call(this, objectToControl[i] , swaggerModel.items);
+      }
+      return objectIsCompliant;
+    break;
+    case 'integer':
+      return typeof objectToControl == 'number' && objectToControl % 1 == 0;
+    break;
+    default:
+      return typeof objectToControl == swaggerModel.type;
+    break;
+  }
+};
+
+/**
   @param parameterToControl : parameter sent by the user and that has to be controled against the swagger specification
   @param typeToEnforce : the swagger type to control
   @return true / false
@@ -208,10 +268,9 @@ var parameterIsRespectingItsType = function(parameterToControl, swaggerParameter
     return NaN;
   }
 
-
   if(swaggerParameter.in == 'body'){
-      //We need to get the schema model and check if the incoming parameter respect it
-      return true;
+      //We need to get the schema model and check if the incoming parameter respects it
+      return modelRespectsItsType.call(this, parameterToControl, swaggerParameter.schema);
   }else{
     //The parameter is specified either in query / path / header or formData
     //Therefor it means that the incoming parameter is a for sure a string but me have to check anyway its type
@@ -237,41 +296,6 @@ var parameterIsRespectingItsType = function(parameterToControl, swaggerParameter
       break;
     }
   }
-  /*
-  //let's check first its type
-  switch(swaggerParameter.type){
-    case 'integer':
-      if(swaggerParameter.in == 'body' || swaggerParameter.in == 'formData'){
-        return typeof parameterToControl == 'number';
-      }
-      return !isNaN(filterInt(parameterToControl));
-    break;
-    case 'number':
-      if(swaggerParameter.in == 'body' || swaggerParameter.in == 'formData'){
-        return typeof parameterToControl == 'number'
-      }
-      if(swaggerParameter.format == 'double' || swaggerParameter.format == 'float'){
-        return !isNaN(filterFloat(parameterToControl));
-      }
-      return !isNaN(filterInt(parameterToControl));
-    break;
-    case 'array' :
-      return Object.prototype.toString.call(parameterToControl) === '[object Array]';
-    break;
-    case 'boolean':
-      //If the data is sent as row data in the body or as formData consider it as real boolean
-      if(swaggerParameter.in == 'body' || swaggerParameter.in == 'formData'){
-        return typeof parameterToControl == 'boolean'
-      }else{//Otherwise consider it as a string that has to be parsed
-        return parameterToControl === 'true' || parameterToControl === 'false'
-      }
-    break;
-    default :
-      return typeof parameterToControl == swaggerParameter.type
-    break;
-  }
-  */
-
 };
 
 /**
@@ -314,9 +338,6 @@ var getGeneriqueMiddleware = function(swaggerParameters){
 
     var queryParameters = req.query;
     var pathParameters = req.params;
-    if(req.url == '/v1/users/ShouldNotWork'){
-      console.log(req)
-    }
     //In get request, the body equals to null, this is why we need to instanciate it to {}
     var bodyParameters = (req.body) ? req.body : {};
 

@@ -119,7 +119,7 @@ describe('When parameters are missing', function(){
     .end(done);
   });
 
-  it('should return an HTTP 400 code when parameters are missing (POST / query + body)', function(done){
+  it('should return an HTTP 400 code when parameters are missing (POST / query + formData)', function(done){
     server = createFakeServer(new swaggerInputValidator(swaggerFile).post("/users"));
     request.agent(server)
     .post('/v1/users?name=Bart')
@@ -129,7 +129,7 @@ describe('When parameters are missing', function(){
     .end(done);
   });
 
-  it('should return an HTTP 400 code when parameters are missing (PUT / query + body)', function(done){
+  it('should return an HTTP 400 code when parameters are missing (PUT / query + formData)', function(done){
     server = createFakeServer(new swaggerInputValidator(swaggerFile).put("/users"));
     request.agent(server)
     .put('/v1/users?surname=Simpson')
@@ -182,6 +182,16 @@ describe('format testing', function(){
     .end(done);
   })
 
+  it('should block request when complex object is sent within the body and don\'t respect its type', function(done){
+    server = createFakeServer(new swaggerInputValidator(swaggerFile).post("/estimates/time"));
+    request.agent(server)
+    .post('/v1/estimates/time')
+    .set('Content-Type', 'application/json')
+    .send({time : {code : "wrongType", message : "message", fields : "fields"}})
+    .expect(400, "Error: Parameter : time does not respect its type.\n")
+    .end(done);
+  })
+
 /*
   it('should block request waiting for integer (in body) and sending a string', function(done){
     server = createFakeServer(new swaggerInputValidator(swaggerFile).post("/users"));
@@ -214,27 +224,17 @@ describe('format testing', function(){
     .expect(400, "Error: Parameter : id does not respect its type.\n")
     .end(done);
   })
-/*
-  it('should block request waiting for boolean (in body) and sending a string', function(done){
+
+  it('should block request waiting for boolean (in formData) and sending a string', function(done){
     server = createFakeServer(new swaggerInputValidator(swaggerFile).post("/users"));
     request.agent(server)
     .post('/v1/users?name=Bart&surname=Simpson')
     .set('Content-Type', 'application/json')
-    .send({sister : 'Lisa', age : 10, optionalBoolean : 'shouldNotWork'})
+    .send({sister : 'Lisa', age : '10', optionalBoolean : 'shouldNotWork'})
     .expect(400, "Error: Parameter : optionalBoolean does not respect its type.\n")
     .end(done);
   })
 
-  it('should block request waiting for boolean (in body) and sending a string which looks like a boolean', function(done){
-    server = createFakeServer(new swaggerInputValidator(swaggerFile).post("/users"));
-    request.agent(server)
-    .post('/v1/users?name=Bart&surname=Simpson')
-    .set('Content-Type', 'application/json')
-    .send({sister : 'Lisa', age : 10, optionalBoolean : 'true'})
-    .expect(400, "Error: Parameter : optionalBoolean does not respect its type.\n")
-    .end(done);
-  })
-*/
   it('should NOT block request waiting for boolean (as formData) and sending a string which looks like a boolean', function(done){
     server = createFakeServer(new swaggerInputValidator(swaggerFile).post("/users"));
     request.agent(server)
@@ -376,7 +376,7 @@ describe('All parameters provided', function(){
     .end(done);
   });
 
-  it('should return an HTTP 200 code in POST (query + body)', function(done){
+  it('should return an HTTP 200 code in POST (query + formData)', function(done){
     server = createFakeServer(new swaggerInputValidator(swaggerFile).post("/users"));
     request.agent(server)
     .post('/v1/users?name=Bart&surname=Simpson')
@@ -386,7 +386,7 @@ describe('All parameters provided', function(){
     .end(done);
   });
 
-  it('should return an HTTP 200 code in POST (query + body)', function(done){
+  it('should return an HTTP 200 code in POST (query + formData)', function(done){
     server = createFakeServer(new swaggerInputValidator(swaggerFile).put("/users"));
     request.agent(server)
     .put('/v1/users?name=Bart&surname=Simpson')
@@ -419,7 +419,7 @@ describe('Control all requests',function(){
     .end(done);
   })
 
-  it('Should reject the request when a body parameter is missing', function(done){
+  it('Should reject the request when a formData parameter is missing', function(done){
     request.agent(server)
     .post('/v1/users?name=Bart&surname=Simpson')
     .set('Content-Type', 'application/json')

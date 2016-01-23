@@ -29,8 +29,24 @@
                 ],
                 "tags": [
                     "User"
-                ]
-
+                ],
+                "responses": {
+                    "200": {
+                        "description": "An array of products",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/Product"
+                            }
+                        }
+                    },
+                    "default": {
+                        "description": "Unexpected error",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    }
+                }
             }
         },
         "/users": {
@@ -52,20 +68,37 @@
                     },
                     {
                         "name": "age",
-                        "in": "body",
+                        "in": "formData",
                         "required": true,
                         "type": "integer"
                     },
                     {
                         "name": "sister",
-                        "in": "body",
+                        "in": "formData",
                         "required": true,
                         "type": "string"
                     }
                 ],
                 "tags": [
                     "User"
-                ]
+                ],
+                "responses": {
+                    "200": {
+                        "description": "An array of products",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/Product"
+                            }
+                        }
+                    },
+                    "default": {
+                        "description": "Unexpected error",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    }
+                }
 
             },
             "post": {
@@ -86,19 +119,19 @@
                     },
                     {
                         "name": "age",
-                        "in": "body",
+                        "in": "formData",
                         "required": true,
                         "type": "number"
                     },
                     {
                         "name": "sister",
-                        "in": "body",
+                        "in": "formData",
                         "required": true,
                         "type": "string"
                     },
                     {
                         "name": "optionalBoolean",
-                        "in": "body",
+                        "in": "formData",
                         "description": "optional parameter but in boolean Format.",
                         "required": false,
                         "type": "boolean"
@@ -113,7 +146,24 @@
                 ],
                 "tags": [
                     "User"
-                ]
+                ],
+                "responses": {
+                    "200": {
+                        "description": "An array of products",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/Product"
+                            }
+                        }
+                    },
+                    "default": {
+                        "description": "Unexpected error",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    }
+                }
 
             },
             "delete": {
@@ -135,7 +185,24 @@
                 ],
                 "tags": [
                     "User"
-                ]
+                ],
+                "responses": {
+                    "200": {
+                        "description": "An array of products",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/Product"
+                            }
+                        }
+                    },
+                    "default": {
+                        "description": "Unexpected error",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    }
+                }
 
             }
         },
@@ -312,6 +379,26 @@
                         }
                     }
                 }
+            },
+            "post":{
+              "parameters":[
+                {
+                    "name": "time",
+                    "in": "body",
+                    "schema":{
+                      "$ref": "#/definitions/Error"
+                    },
+                    "required": true
+                }
+              ],
+              "responses":{
+                "default": {
+                    "description": "Unexpected error",
+                    "schema": {
+                        "$ref": "#/definitions/Error"
+                    }
+                }
+              }
             }
         },
         "/me": {
