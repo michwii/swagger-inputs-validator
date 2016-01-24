@@ -585,6 +585,11 @@
         },
         "Error": {
             "type": "object",
+            "required":[
+              "code",
+              "message",
+              "fields"
+            ],
             "properties": {
                 "code": {
                     "type": "integer",
