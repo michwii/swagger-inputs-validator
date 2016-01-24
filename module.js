@@ -16,6 +16,7 @@ var SwaggerInputValidator = function(swagger, options){
         if(options){
           var onError = options.onError;
           var strict = options.strict;
+          var allowNull = options.allowNull;
           if(onError && typeof onError != 'function'){
             throw new Error("The parameter onError in not a function");
           }else{
@@ -25,7 +26,13 @@ var SwaggerInputValidator = function(swagger, options){
           if(strict && typeof strict != 'boolean'){
             throw new Error("The parameter strict in not a boolean");
           }else{
-            this._strict = strict;
+            this._strict = strict || false;
+          }
+
+          if(allowNull && typeof allowNull != 'boolean'){
+            throw new Error("The parameter allowNull in not a boolean");
+          }else{
+            this._allowNull = allowNull || false;
           }
         }
 
@@ -230,15 +237,23 @@ var getObjectFromSwaggerReference = function (swaggerReference){
 */
 var complexTypeChecking = function(objectToControl, swaggerModel){
 
+  //Check if null values are allowed
+  if(objectToControl === null && this._allowNull){
+    return true;
+  }
+
   if(swaggerModel['$ref']){
     swaggerModel = getObjectFromSwaggerReference.call(this, swaggerModel['$ref']);
   }
+
+  var thisReference = this;
+
   switch(swaggerModel.type){
     case 'object':
       var objectIsCompliant = true;
       Object.keys(swaggerModel.properties).forEach(function (variableName) {
-        if((swaggerModel.required && swaggerModel.required.indexOf(variableName) != -1) || objectToControl) {
-          objectIsCompliant = objectIsCompliant && complexTypeChecking.call(this, objectToControl[variableName], swaggerModel.properties[variableName]);
+        if((swaggerModel.required && swaggerModel.required.indexOf(variableName) != -1) || objectToControl[variableName]) {
+          objectIsCompliant = objectIsCompliant && complexTypeChecking.call(thisReference, objectToControl[variableName], swaggerModel.properties[variableName]);
         }
       });
       return objectIsCompliant;
@@ -249,7 +264,7 @@ var complexTypeChecking = function(objectToControl, swaggerModel){
       }
       var objectIsCompliant = true;
       for(var i = 0; i < objectToControl.length; i++){
-        objectIsCompliant = objectIsCompliant && complexTypeChecking.call(this, objectToControl[i] , swaggerModel.items);
+        objectIsCompliant = objectIsCompliant && complexTypeChecking.call(thisReference, objectToControl[i] , swaggerModel.items);
       }
       return objectIsCompliant;
     break;

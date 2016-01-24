@@ -58,7 +58,14 @@ describe('Wrong instanciations', function() {
   });
   it('should crash if bad option.strict variable is passed', function(done){
     assert.throws(function(){
-      new swaggerInputValidator(swaggerFile, {strict:"wrong option.success parameter"});
+      new swaggerInputValidator(swaggerFile, {strict:"wrong option.strict parameter"});
+    });
+    done();
+  });
+
+  it('should crash if bad option.allowNull variable is passed', function(done){
+    assert.throws(function(){
+      new swaggerInputValidator(swaggerFile, {allowNull:"wrong option.allowNull parameter"});
     });
     done();
   });
@@ -234,7 +241,7 @@ describe('format testing', function(){
     .end(done);
   })
 
-  it('should block request when complex object is sent within the body and don\'t respect its type (second level)', function(done){
+  it('should block request when complex object is sent within the body and don\'t respect its type', function(done){
     server = createFakeServer(new swaggerInputValidator(swaggerFile).post("/estimates/time"));
     request.agent(server)
     .post('/v1/estimates/time')
@@ -253,6 +260,30 @@ describe('format testing', function(){
       sub_prop1:"goodType",
       sub_prop2 : "WrongType"
     }}})
+    .expect(400, "Error: Parameter : time does not respect its type.\n")
+    .end(done);
+  })
+
+  it('should block request when waiting for an array of string and sending array of int', function(done){
+    server = createFakeServer(new swaggerInputValidator(swaggerFile).post("/estimates/time"));
+    request.agent(server)
+    .post('/v1/estimates/time')
+    .set('Content-Type', 'application/json')
+    .send({time : {code : 30, message : "message", fields : "fields", optionalArray : [
+        10,20,30
+    ]}})
+    .expect(400, "Error: Parameter : time does not respect its type.\n")
+    .end(done);
+  })
+
+  it('should block request when waiting for an array of string and sending a mixed array ', function(done){
+    server = createFakeServer(new swaggerInputValidator(swaggerFile).post("/estimates/time"));
+    request.agent(server)
+    .post('/v1/estimates/time')
+    .set('Content-Type', 'application/json')
+    .send({time : {code : 30, message : "message", fields : "fields", optionalArray : [
+        10,"Wrong type",30
+    ]}})
     .expect(400, "Error: Parameter : time does not respect its type.\n")
     .end(done);
   })
@@ -417,6 +448,26 @@ describe('All parameters provided', function(){
     .expect(200, { success: 'If you can enter here, it means that the swagger middleware let you do so' })
     .end(done);
   });
+
+  it('should allows empty arrays in body', function(done){
+    server = createFakeServer(new swaggerInputValidator(swaggerFile).post("/estimates/time"));
+    request.agent(server)
+    .post('/v1/estimates/time')
+    .set('Content-Type', 'application/json')
+    .send({time : {code : 30, message : "message", fields : "fields", optionalArray : []}})
+    .expect(200, { success: 'If you can enter here, it means that the swagger middleware let you do so' })
+    .end(done);
+  })
+
+  it('should allows null values ', function(done){
+    server = createFakeServer(new swaggerInputValidator(swaggerFile, {allowNull : true}).post("/estimates/time"));
+    request.agent(server)
+    .post('/v1/estimates/time')
+    .set('Content-Type', 'application/json')
+    .send({time : {code : 30, message : null, fields : "fields"}})
+    .expect(200, { success: 'If you can enter here, it means that the swagger middleware let you do so' })
+    .end(done);
+  })
 
 });
 
