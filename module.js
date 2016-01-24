@@ -237,8 +237,7 @@ var complexTypeChecking = function(objectToControl, swaggerModel){
     case 'object':
       var objectIsCompliant = true;
       Object.keys(swaggerModel.properties).forEach(function (variableName) {
-        //We check if the property is mandatory
-        if(swaggerModel.required && swaggerModel.required.indexOf(variableName) != -1){
+        if((swaggerModel.required && swaggerModel.required.indexOf(variableName) != -1) || objectToControl) {
           objectIsCompliant = objectIsCompliant && complexTypeChecking.call(this, objectToControl[variableName], swaggerModel.properties[variableName]);
         }
       });
