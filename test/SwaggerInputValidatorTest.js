@@ -239,7 +239,7 @@ describe('format testing', function(){
     request.agent(server)
     .post('/v1/estimates/time')
     .set('Content-Type', 'application/json')
-    .send({time : {code : "wrongType", message : "message", fields : "fields"}})
+    .send({time : {code : "wrongType", message : "message", fields : "fields", optional: 10}})
     .expect(400, "Error: Parameter : time does not respect its type.\n")
     .end(done);
   })
