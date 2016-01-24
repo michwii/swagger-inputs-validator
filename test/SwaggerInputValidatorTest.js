@@ -239,7 +239,17 @@ describe('format testing', function(){
     request.agent(server)
     .post('/v1/estimates/time')
     .set('Content-Type', 'application/json')
-    .send({time : {code : "wrongType", message : "message", fields : "fields", optional: 10}})
+    .send({time : {code : "wrongType", message : "message", fields : "fields"}})
+    .expect(400, "Error: Parameter : time does not respect its type.\n")
+    .end(done);
+  })
+
+  it('should block request when complex object is sent within the body and don\'t respect its type (second level)', function(done){
+    server = createFakeServer(new swaggerInputValidator(swaggerFile).post("/estimates/time"));
+    request.agent(server)
+    .post('/v1/estimates/time')
+    .set('Content-Type', 'application/json')
+    .send({time : {code : "wrongType", message : "message", fields : "fields"}})
     .expect(400, "Error: Parameter : time does not respect its type.\n")
     .end(done);
   })
@@ -337,6 +347,16 @@ describe('Parameter that are not required', function(){
     .expect(200, { success: 'If you can enter here, it means that the swagger middleware let you do so' })
     .end(done);
   });
+
+  it('should not block request when complex object is sent within the body without specifying an optional property', function(done){
+    server = createFakeServer(new swaggerInputValidator(swaggerFile).post("/estimates/time"));
+    request.agent(server)
+    .post('/v1/estimates/time')
+    .set('Content-Type', 'application/json')
+    .send({time : {code : 10, message : "message", fields : "fields"}})
+    .expect(200, { success: 'If you can enter here, it means that the swagger middleware let you do so' })
+    .end(done);
+  })
 
 });
 

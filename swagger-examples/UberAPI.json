@@ -597,7 +597,15 @@
                     "type": "string"
                 },
                 "optional": {
-                    "type": "string"
+                    "type": "object",
+                    "properties":{
+                      "sub_prop1" : {
+                        "type":"string"
+                      },
+                      "sub_prop2":{
+                        "type": "boolean"
+                      }
+                    }
                 }
             }
         }
