@@ -595,6 +595,9 @@
                 },
                 "fields": {
                     "type": "string"
+                },
+                "optional": {
+                    "type": "string"
                 }
             }
         }

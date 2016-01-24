@@ -182,18 +182,7 @@ describe('format testing', function(){
     .end(done);
   })
 
-  it('should block request when complex object is sent within the body and don\'t respect its type', function(done){
-    server = createFakeServer(new swaggerInputValidator(swaggerFile).post("/estimates/time"));
-    request.agent(server)
-    .post('/v1/estimates/time')
-    .set('Content-Type', 'application/json')
-    .send({time : {code : "wrongType", message : "message", fields : "fields"}})
-    .expect(400, "Error: Parameter : time does not respect its type.\n")
-    .end(done);
-  })
-
-/*
-  it('should block request waiting for integer (in body) and sending a string', function(done){
+  it('should block request waiting for integer (in formData) and sending a string', function(done){
     server = createFakeServer(new swaggerInputValidator(swaggerFile).post("/users"));
     request.agent(server)
     .post('/v1/users?name=Bart&surname=Simpson')
@@ -203,16 +192,6 @@ describe('format testing', function(){
     .end(done);
   })
 
-  it('should block request waiting for string (in body) and sending a int', function(done){
-    server = createFakeServer(new swaggerInputValidator(swaggerFile).post("/users"));
-    request.agent(server)
-    .post('/v1/users?name=Bart&surname=Simpson')
-    .set('Content-Type', 'application/json')
-    .send({sister : 1234, age : 10})
-    .expect(400, "Error: Parameter : sister does not respect its type.\n")
-    .end(done);
-  })
-*/
   it('should block request waiting for an int (in path) and sending a string', function(done){
     var app = express();
     app.get('/v1/users/:id', new swaggerInputValidator(swaggerFile).get("/users/:id"), function(req, res){
@@ -242,6 +221,26 @@ describe('format testing', function(){
     .set('Content-Type', 'application/x-www-form-urlencoded')
     .send({sister : 'Lisa', age : '10', optionalBoolean : 'true'})
     .expect(200, { success: 'If you can enter here, it means that the swagger middleware let you do so' })
+    .end(done);
+  })
+
+  it('should block request when complex object is sent within the body and don\'t respect its type', function(done){
+    server = createFakeServer(new swaggerInputValidator(swaggerFile).post("/estimates/time"));
+    request.agent(server)
+    .post('/v1/estimates/time')
+    .set('Content-Type', 'application/json')
+    .send({time : {code : "wrongType", message : "message", fields : "fields"}})
+    .expect(400, "Error: Parameter : time does not respect its type.\n")
+    .end(done);
+  })
+
+  it('should block request when complex object is sent within the body and don\'t respect its type (second level)', function(done){
+    server = createFakeServer(new swaggerInputValidator(swaggerFile).post("/estimates/time"));
+    request.agent(server)
+    .post('/v1/estimates/time')
+    .set('Content-Type', 'application/json')
+    .send({time : {code : "wrongType", message : "message", fields : "fields"}})
+    .expect(400, "Error: Parameter : time does not respect its type.\n")
     .end(done);
   })
 

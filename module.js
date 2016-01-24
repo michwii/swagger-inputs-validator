@@ -155,7 +155,7 @@ var getErrors = function(swaggerParameters, queryParameters, pathParameters, bod
           //If the parameter name is ""it means that the object will not be encapsuled and will be sent directly within the body playload
           //We now control the type. In body mode, types are complex
           var paramsToCheck = (parameter.name == "") ? bodyParameters : bodyParameters[parameter.name];
-          if(bodyParameters[parameter.name] && !complexTypeChecking.call(thisReference, paramsToCheck, parameter)){
+          if(bodyParameters[parameter.name] && !complexTypeChecking.call(thisReference, paramsToCheck, parameter.schema)){
             errorsToReturn.push(new Error("Parameter : " + parameter.name + " does not respect its type."));
           }
         }
@@ -164,7 +164,7 @@ var getErrors = function(swaggerParameters, queryParameters, pathParameters, bod
         if(bodyParameters[parameter.name] == undefined && parameter.required == true){
           errorsToReturn.push(new Error("Parameter : " + parameter.name + " is not specified."));
         }else{
-          //We now control the type. In body mode, types are complex
+          //We now control the type. In formData mode, types are not complex
           if(bodyParameters[parameter.name] && !simpleTypeChecking.call(thisReference, bodyParameters[parameter.name], parameter)){
             errorsToReturn.push(new Error("Parameter : " + parameter.name + " does not respect its type."));
           }
@@ -198,7 +198,7 @@ var getErrors = function(swaggerParameters, queryParameters, pathParameters, bod
     });
 
     Object.keys(bodyParameters).forEach(function (variableName, index) {
-        if(!isPresentWithinTheSwagger("body", variableName)){
+        if(!isPresentWithinTheSwagger("formData", variableName)){
           errorsToReturn.push(new Error("Parameter : " + variableName + " should not be specified."));
         }
     });
@@ -238,7 +238,7 @@ var complexTypeChecking = function(objectToControl, swaggerModel){
     case 'object':
       var objectIsCompliant = true;
       Object.keys(swaggerModel.properties).forEach(function (variableName) {
-        objectIsCompliant = objectIsCompliant && modelRespectsItsType.call(this, objectToControl[variableName], swaggerModel.properties[variableName]);
+        objectIsCompliant = objectIsCompliant && complexTypeChecking.call(this, objectToControl[variableName], swaggerModel.properties[variableName]);
       });
       return objectIsCompliant;
     break;
@@ -248,7 +248,7 @@ var complexTypeChecking = function(objectToControl, swaggerModel){
       }
       var objectIsCompliant = true;
       for(var i = 0; i < objectToControl.length; i++){
-        objectIsCompliant = objectIsCompliant && modelRespectsItsType.call(this, objectToControl[i] , swaggerModel.items);
+        objectIsCompliant = objectIsCompliant && complexTypeChecking.call(this, objectToControl[i] , swaggerModel.items);
       }
       return objectIsCompliant;
     break;
