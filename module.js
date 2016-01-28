@@ -26,13 +26,13 @@ var SwaggerInputValidator = function(swagger, options){
           if(strict && typeof strict != 'boolean'){
             throw new Error("The parameter strict in not a boolean");
           }else{
-            this._strict = strict || false;
+            this._strict = (strict) ? true : false;
           }
 
           if(allowNull && typeof allowNull != 'boolean'){
             throw new Error("The parameter allowNull in not a boolean");
           }else{
-            this._allowNull = allowNull || false;
+            this._allowNull = (allowNull) ? true : false;
           }
         }
 
@@ -238,8 +238,8 @@ var getObjectFromSwaggerReference = function (swaggerReference){
 var complexTypeChecking = function(objectToControl, swaggerModel){
 
   //Check if null values are allowed
-  if(objectToControl === null && this._allowNull){
-    return true;
+  if(objectToControl === null){
+    return objectToControl === null && this._allowNull;
   }
 
   if(swaggerModel['$ref']){
@@ -252,7 +252,7 @@ var complexTypeChecking = function(objectToControl, swaggerModel){
     case 'object':
       var objectIsCompliant = true;
       Object.keys(swaggerModel.properties).forEach(function (variableName) {
-        if((swaggerModel.required && swaggerModel.required.indexOf(variableName) != -1) || objectToControl[variableName]) {
+        if((swaggerModel.required && swaggerModel.required.indexOf(variableName) != -1) || objectToControl[variableName] !== undefined) {
           objectIsCompliant = objectIsCompliant && complexTypeChecking.call(thisReference, objectToControl[variableName], swaggerModel.properties[variableName]);
         }
       });

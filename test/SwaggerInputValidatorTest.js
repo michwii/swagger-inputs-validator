@@ -296,7 +296,32 @@ describe('format testing', function(){
     .end(done);
   })
 
+
 })
+
+describe('AllowNull = true / AllowNull = false', function(){
+
+  it('should block request when null value is sent and allowNull is false', function(done){
+    server = createFakeServer(new swaggerInputValidator(swaggerFile, {allowNull : false}).post("/estimates/time"));
+    request.agent(server)
+    .post('/v1/estimates/time')
+    .set('Content-Type', 'application/json')
+    .send({time : {code : 30, message : "message", fields : "fields", optional : null}})
+    .expect(400, "Error: Parameter : time does not respect its type.\n")
+    .end(done);
+  })
+
+  it('should block request when null value is sent and allowNull is true', function(done){
+    server = createFakeServer(new swaggerInputValidator(swaggerFile, {allowNull : true}).post("/estimates/time"));
+    request.agent(server)
+    .post('/v1/estimates/time')
+    .set('Content-Type', 'application/json')
+    .send({time : {code : 30, message : "message", fields : "fields", optional : null}})
+    .expect(200, { success: 'If you can enter here, it means that the swagger middleware let you do so' })
+    .end(done);
+  })
+
+});
 
 describe('Custom errorHandling', function(){
   var server;
