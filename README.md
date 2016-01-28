@@ -79,6 +79,7 @@ So far, you can use the route middleware with the following HTTP verbs :
 When you are calling the constructor, you can specify options :
 * **strict** : Default to false. When it's true, SwaggerInputsValidator will reject all the incoming parameters that are not specified in the swagger file 
 * **onError** : a function that will handle your custom error behaviour
+* **allowNull** : Default to true, allows your users to send you (in the body) variables that are equals to null.
 
 ```JavaScript
 
@@ -92,17 +93,16 @@ var swaggerMiddleware = new SwaggerValidator(swaggerFile, {strict : true, onErro
 
 ###Current release capabilities
 - [x] Parse a swagger json file (2.0 specification)
-- [ ] Parse a yam file
 - [x] checking parameters in req.query
 - [x] checking parameters in req.body
 - [x] checking parameters in req.params
 - [ ] checking parameters in req.headers
 - [x] checking optinal variables
 - [x] checking variable types string | integer | double | boolean
+- [x] checking object structure present within the body
 - [ ] checking parameters in req.file
-- [ ] checking arrays
+- [x] checking arrays
 - [ ] checking string patterns (with RegExp)
-- [ ] checking variable occurences in an array
 
 We are currently working to enhance this middleware, any contribution is welcome :)
 
