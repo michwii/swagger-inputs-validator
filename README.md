@@ -79,7 +79,7 @@ So far, you can use the route middleware with the following HTTP verbs :
 When you are calling the constructor, you can specify options :
 * **strict** : Default to false. When it's true, SwaggerInputsValidator will reject all the incoming parameters that are not specified in the swagger file 
 * **onError** : a function that will handle your custom error behaviour
-* **allowNull** : Default to true, allows your users to send you (in the body) variables that are equals to null.
+* **allowNull** : Default to true, allows your users to send you (in the body) variables that are equal to null.
 
 ```JavaScript
 
@@ -88,7 +88,7 @@ var customErrorHandler = function(errors, req, res){
   res.json({message : "This message is coming from a custom error handler. Please find all your mistakes in the errors variable", errors : errors});
 };
 
-var swaggerMiddleware = new SwaggerValidator(swaggerFile, {strict : true, onError : customErrorHandler});
+var swaggerMiddleware = new SwaggerValidator(swaggerFile, {strict : true, onError : customErrorHandler, allowNull : false});
 ```
 
 ###Current release capabilities
