@@ -143,6 +143,10 @@ var getErrors = function(swaggerParameters, queryParameters, pathParameters, bod
           if(queryParameters[parameter.name] && !simpleTypeChecking.call(thisReference, queryParameters[parameter.name], parameter)){
             errorsToReturn.push(new Error("Parameter : " + parameter.name + " does not respect its type."));
           }
+          //We control now the authorized values present within enum
+          if(parameter.enum && parameter.enum.indexOf(queryParameters[parameter.name]) == -1){
+            errorsToReturn.push(new Error("Parameter : " + parameter.name + " has an unauthorized value."));
+          }
         }
       break;
       case "path":
@@ -153,10 +157,14 @@ var getErrors = function(swaggerParameters, queryParameters, pathParameters, bod
           if(pathParameters[parameter.name] && !simpleTypeChecking.call(thisReference, pathParameters[parameter.name], parameter)){
             errorsToReturn.push(new Error("Parameter : " + parameter.name + " does not respect its type."));
           }
+          //We control now the authorized values present within enum
+          if(parameter.enum && parameter.enum.indexOf(pathParameters[parameter.name]) == -1){
+            errorsToReturn.push(new Error("Parameter : " + parameter.name + " has an unauthorized value."));
+          }
         }
       break;
       case "body":
-        if(bodyParameters[parameter.name] == undefined && parameter.required == true){
+        if(bodyParameters[parameter.name] === undefined && parameter.required == true){
           errorsToReturn.push(new Error("Parameter : " + parameter.name + " is not specified."));
         }else{
           //If the parameter name is ""it means that the object will not be encapsuled and will be sent directly within the body playload
@@ -174,6 +182,10 @@ var getErrors = function(swaggerParameters, queryParameters, pathParameters, bod
           //We now control the type. In formData mode, types are not complex
           if(bodyParameters[parameter.name] && !simpleTypeChecking.call(thisReference, bodyParameters[parameter.name], parameter)){
             errorsToReturn.push(new Error("Parameter : " + parameter.name + " does not respect its type."));
+          }
+          //We control now the authorized values present within enum
+          if(parameter.enum && parameter.enum.indexOf(bodyParameters[parameter.name]) == -1){
+            errorsToReturn.push(new Error("Parameter : " + parameter.name + " has an unauthorized value."));
           }
         }
       break;

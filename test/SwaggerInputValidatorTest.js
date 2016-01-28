@@ -295,9 +295,7 @@ describe('format testing', function(){
     .expect(400, "Error: Parameter : time does not respect its type.\n")
     .end(done);
   })
-
-
-})
+});
 
 describe('AllowNull = true / AllowNull = false', function(){
 
@@ -311,7 +309,7 @@ describe('AllowNull = true / AllowNull = false', function(){
     .end(done);
   })
 
-  it('should block request when null value is sent and allowNull is true', function(done){
+  it('should not block request when null value is sent and allowNull is true', function(done){
     server = createFakeServer(new swaggerInputValidator(swaggerFile, {allowNull : true}).post("/estimates/time"));
     request.agent(server)
     .post('/v1/estimates/time')
@@ -321,6 +319,40 @@ describe('AllowNull = true / AllowNull = false', function(){
     .end(done);
   })
 
+  it('should block request when null is set to an array value is sent and allowNull is false', function(done){
+    server = createFakeServer(new swaggerInputValidator(swaggerFile, {allowNull : false}).post("/estimates/time"));
+    request.agent(server)
+    .post('/v1/estimates/time')
+    .set('Content-Type', 'application/json')
+    .send({time : {code : 30, message : "message", fields : "fields", optional : {
+      sub_prop1 : null,
+      sub_prop2 : false
+    }}})
+    .expect(400, "Error: Parameter : time does not respect its type.\n")
+    .end(done);
+  })
+});
+
+describe('Handle enum properties', function(){
+  var server;
+  before(function(){
+    swaggerFile = require('./../swagger-examples/UberAPI.json');
+    server = createFakeServer(new swaggerInputValidator(swaggerFile).get("/history"));
+  });
+
+  it('should block request if parameter in query does not respected authorized values', function(done){
+    request.agent(server)
+    .get('/v1/history?offset=10&limit=10&optional=notAllowed')
+    .expect(400, "Error: Parameter : optional has an unauthorized value.\n")
+    .end(done);
+  });
+
+  it('should allows request if parameter in query respects authorized values', function(done){
+    request.agent(server)
+    .get('/v1/history?offset=10&limit=10&optional=authorizedValue1')
+    .expect(200, { success: 'If you can enter here, it means that the swagger middleware let you do so' })
+    .end(done);
+  });
 });
 
 describe('Custom errorHandling', function(){

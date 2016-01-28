@@ -442,7 +442,17 @@
                         "type": "integer",
                         "format": "int32",
                         "description": "Number of items to retrieve. Default is 5, maximum is 100."
+                    },
+                    {
+                        "name": "optional",
+                        "in": "query",
+                        "type": "string",
+                        "enum" : [
+                          "authorizedValue1",
+                          "authorizedValue2"
+                        ]
                     }
+
                 ],
                 "tags": [
                     "User"
