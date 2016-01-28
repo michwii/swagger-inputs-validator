@@ -88,7 +88,7 @@ var customErrorHandler = function(errors, req, res){
   res.json({message : "This message is coming from a custom error handler. Please find all your mistakes in the errors variable", errors : errors});
 };
 
-var swaggerMiddleware = new SwaggerValidator(swaggerFile, {strict : true, onError : customErrorHandler});
+var swaggerMiddleware = new SwaggerValidator(swaggerFile, {strict : true, onError : customErrorHandler, allowNull : false});
 ```
 
 ###Current release capabilities
