@@ -82,16 +82,24 @@ describe('good instanciation', function() {
     new swaggerInputValidator(swaggerFile);
     done();
   });
+
   it('should NOT crash if valid swagger is passed + valid onError function', function(done){
     new swaggerInputValidator(swaggerFile, {onError: function(errors, req, res){}});
     done();
   });
+
   it('should NOT crash if valid swagger is passed + valid strict variable', function(done){
     new swaggerInputValidator(swaggerFile, {strict: false});
     done();
   });
+
   it('should NOT crash if valid swagger is passed + valid strict variable + valid onError function', function(done){
     new swaggerInputValidator(swaggerFile, {strict: false, onError: function(errors, req, res){}});
+    done();
+  });
+
+  it('should NOT crash if valid swagger is passed + valid strict variable + valid onError function + valid allowNull', function(done){
+    new swaggerInputValidator(swaggerFile, {strict: false, allowNull: true, onError: function(errors, req, res){}});
     done();
   });
 });
