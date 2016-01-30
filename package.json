@@ -25,7 +25,8 @@
     "input",
     "rest",
     "api",
-    "middleware"
+    "middleware",
+    "express"
   ],
   "author": "michwii",
   "license": "MIT",
