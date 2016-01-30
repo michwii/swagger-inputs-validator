@@ -172,6 +172,13 @@ describe('When parameters are missing', function(){
     .end(done);
   });
 
+  it('should return an HTTP 400 code when a custom header is missing', function(done){
+    server = createFakeServer(new swaggerInputValidator(swaggerFile).get("/profil"));
+    request.agent(server)
+    .get('/v1/profil')
+    .expect(400, "Error: Parameter : x-custom-header is not specified.\n")
+    .end(done);
+  });
 });
 
 describe('format testing', function(){
@@ -315,6 +322,15 @@ describe('format testing', function(){
     .expect(400, "Error: Parameter : Playload within the body does not respect its type.\n")
     .end(done);
   });
+
+  it('should return an HTTP 400 code when a custom header type is not correct', function(done){
+    server = createFakeServer(new swaggerInputValidator(swaggerFile).get("/profil"));
+    request.agent(server)
+    .get('/v1/profil')
+    .set('X-CUSTOM-HEADER', "wrong type")
+    .expect(400, "Error: Parameter : x-custom-header does not respect its type.\n")
+    .end(done);
+  });
 });
 
 describe('AllowNull = true / AllowNull = false', function(){
@@ -381,6 +397,15 @@ describe('Handle enum properties', function(){
     request.agent(server)
     .get('/v1/history?offset=10&limit=10&optional=authorizedValue1')
     .expect(200, { success: 'If you can enter here, it means that the swagger middleware let you do so' })
+    .end(done);
+  });
+
+  it('should return an HTTP 400 code when a custom header has unauthorized value', function(done){
+    server = createFakeServer(new swaggerInputValidator(swaggerFile).get("/profil"));
+    request.agent(server)
+    .get('/v1/profil')
+    .set('X-CUSTOM-HEADER', 50)
+    .expect(400, "Error: Parameter : x-custom-header has an unauthorized value.\n")
     .end(done);
   });
 });
@@ -528,6 +553,16 @@ describe('Parameter that are not required', function(){
     .expect(200, { success: 'If you can enter here, it means that the swagger middleware let you do so' })
     .end(done);
   });
+
+/*
+  it('should return an HTTP 200 code when an optional parameter is not provided in header', function(done){
+    request.agent(createFakeServer(new swaggerInputValidator(swaggerFile).get("/profil")))
+    .get('/v1/profil')
+    .set('x-custom-header', 1)
+    .expect(200, { success: 'If you can enter here, it means that the swagger middleware let you do so' })
+    .end(done);
+  });
+*/
 });
 
 
@@ -643,8 +678,6 @@ describe('Control all requests',function(){
     .expect(404)
     .end(done);
   })
-
-
 });
 
 function createFakeServer(swaggerMiddleware){

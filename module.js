@@ -128,7 +128,7 @@ var getParsingParameters = function(url){
   @param bodyParameters : the parameters present within the req.body
   @return An array of parameters that do not respect the swagger file requirements
 */
-var getErrors = function(swaggerParameters, queryParameters, pathParameters, bodyParameters){
+var getErrors = function(swaggerParameters, queryParameters, pathParameters, bodyParameters, headerParameters){
   var thisReference = this;
 
   var errorsToReturn = new Array();
@@ -142,10 +142,11 @@ var getErrors = function(swaggerParameters, queryParameters, pathParameters, bod
           //We now control the type. In query mode, types can only be simple types : "string", "number", "integer", "boolean", "array"
           if(queryParameters[parameter.name] && !simpleTypeChecking.call(thisReference, queryParameters[parameter.name], parameter)){
             errorsToReturn.push(new Error("Parameter : " + parameter.name + " does not respect its type."));
-          }
-          //We control now the authorized values present within enum
-          if(parameter.enum && parameter.enum.indexOf(queryParameters[parameter.name]) == -1){
-            errorsToReturn.push(new Error("Parameter : " + parameter.name + " has an unauthorized value."));
+          }else{
+            //We control now the authorized values present within enum
+            if(queryParameters[parameter.name] && parameter.enum && parameter.enum.indexOf(queryParameters[parameter.name]) == -1){
+              errorsToReturn.push(new Error("Parameter : " + parameter.name + " has an unauthorized value."));
+            }
           }
         }
       break;
@@ -156,10 +157,11 @@ var getErrors = function(swaggerParameters, queryParameters, pathParameters, bod
           //We now control the type. In path mode, types can only be simple types : "string", "number", "integer", "boolean", "array"
           if(pathParameters[parameter.name] && !simpleTypeChecking.call(thisReference, pathParameters[parameter.name], parameter)){
             errorsToReturn.push(new Error("Parameter : " + parameter.name + " does not respect its type."));
-          }
-          //We control now the authorized values present within enum
-          if(parameter.enum && parameter.enum.indexOf(pathParameters[parameter.name]) == -1){
-            errorsToReturn.push(new Error("Parameter : " + parameter.name + " has an unauthorized value."));
+          }else{
+            //We control now the authorized values present within enum
+            if(pathParameters[parameter.name] && parameter.enum && parameter.enum.indexOf(pathParameters[parameter.name]) == -1){
+              errorsToReturn.push(new Error("Parameter : " + parameter.name + " has an unauthorized value."));
+            }
           }
         }
       break;
@@ -191,10 +193,29 @@ var getErrors = function(swaggerParameters, queryParameters, pathParameters, bod
           //We now control the type. In formData mode, types are not complex
           if(bodyParameters[parameter.name] && !simpleTypeChecking.call(thisReference, bodyParameters[parameter.name], parameter)){
             errorsToReturn.push(new Error("Parameter : " + parameter.name + " does not respect its type."));
+          }else{
+            //We control now the authorized values present within enum
+            if(bodyParameters[parameter.name] && parameter.enum && parameter.enum.indexOf(bodyParameters[parameter.name]) == -1){
+              errorsToReturn.push(new Error("Parameter : " + parameter.name + " has an unauthorized value."));
+            }
           }
-          //We control now the authorized values present within enum
-          if(parameter.enum && parameter.enum.indexOf(bodyParameters[parameter.name]) == -1){
-            errorsToReturn.push(new Error("Parameter : " + parameter.name + " has an unauthorized value."));
+        }
+      break;
+      case "header":
+        //Express put all header parameters in lowerCase so we prepare the swagger parameter
+        parameter.name = parameter.name.toLowerCase();
+        if(headerParameters[parameter.name] == undefined && parameter.required == true){
+          errorsToReturn.push(new Error("Parameter : " + parameter.name + " is not specified."));
+        }else{
+          //We now control the type. In header mode, types can only be simple types : "string", "number", "integer", "boolean", "array"
+          if(headerParameters[parameter.name] && !simpleTypeChecking.call(thisReference, headerParameters[parameter.name], parameter)){
+            errorsToReturn.push(new Error("Parameter : " + parameter.name + " does not respect its type."));
+          }else{
+            //We control now the authorized values present within enum
+            if(headerParameters[parameter.name] && parameter.enum && parameter.enum.indexOf(headerParameters[parameter.name]) == -1){
+              console.log(headerParameters[parameter.name]);
+              errorsToReturn.push(new Error("Parameter : " + parameter.name + " has an unauthorized value."));
+            }
           }
         }
       break;
@@ -418,10 +439,11 @@ var getGeneriqueMiddleware = function(swaggerParameters){
 
     var queryParameters = req.query;
     var pathParameters = req.params;
+    var headerParameters = req.headers;
     //In get request, the body equals to null, this is why we need to instanciate it to {}
     var bodyParameters = (req.body) ? req.body : {};
 
-    var errorsToReturn = getErrors.call(thisReference, swaggerParameters, queryParameters, pathParameters, bodyParameters);
+    var errorsToReturn = getErrors.call(thisReference, swaggerParameters, queryParameters, pathParameters, bodyParameters, headerParameters);
 
     if(errorsToReturn.length == 0){
       next();
@@ -458,10 +480,11 @@ SwaggerInputValidator.prototype.all = function(){
 
     var queryParameters = req.query;
     var pathParameters = getPathParametersFromUrl.call(thisReference, url, parsingParameters);
+    var headerParameters = req.headers;
     //In get request, the body equals to null, this is why we need to instanciate it to {}
     var bodyParameters = (req.body) ? req.body : {};
 
-    var errorsToReturn = getErrors.call(thisReference, swaggerParameters, queryParameters, pathParameters, bodyParameters);
+    var errorsToReturn = getErrors.call(thisReference, swaggerParameters, queryParameters, pathParameters, bodyParameters, headerParameters);
 
     if(errorsToReturn.length == 0){
       next();

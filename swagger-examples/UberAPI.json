@@ -504,6 +504,51 @@
                     }
                 }
             }
+        },
+        "/profil": {
+            "get": {
+                "summary": "User Profil",
+                "description": "",
+                "parameters": [
+                    {
+                        "name": "X-CUSTOM-HEADER",
+                        "in": "header",
+                        "type": "integer",
+                        "description": "custom header containing a serialized user.",
+                        "required" : true,
+                        "enum" : [
+                          1,2,3
+                        ]
+                    },
+                    {
+                        "name": "X-CUSTOM-HEADER-OPTIONAL",
+                        "in": "header",
+                        "type": "string",
+                        "description": "custom header containing a serialized user.",
+                        "required" : false,
+                        "enum" : [
+                          "value1"
+                        ]
+                    }
+                ],
+                "tags": [
+                    "User"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "History information for the given user",
+                        "schema": {
+                            "$ref": "#/definitions/Activities"
+                        }
+                    },
+                    "default": {
+                        "description": "Unexpected error",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
