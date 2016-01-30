@@ -162,6 +162,16 @@ describe('When parameters are missing', function(){
     .end(done);
   });
 
+  it('should return an HTTP 400 code when parameters are missing in body (no encapsulation)', function(done){
+    server = createFakeServer(new swaggerInputValidator(swaggerFile).post("/orders"));
+    request.agent(server)
+    .post('/v1/orders')
+    .set('Content-Type', 'application/json')
+    .send({sister : 'Lisa'})
+    .expect(400, "Error: Parameter : Playload within the body does not respect its type.\n")
+    .end(done);
+  });
+
 });
 
 describe('format testing', function(){
@@ -414,6 +424,15 @@ describe('strict / no strict mode', function(){
     request.agent(serverInStrictModeAndWaitingForComplexObject)
     .post('/v1/estimates/time')
     .set('Content-Type', 'application/json')
+    .send({time : {code : 30, message : "message", fields : "fields", extraParameter : "Should not work"}})
+    .expect(400, "Error: Parameter : time contains extra values.\n")
+    .end(done);
+  });
+
+  it('should return an HTTP 400 code when extra parameters are provided in body and strict = true (second level check)', function(done){
+    request.agent(serverInStrictModeAndWaitingForComplexObject)
+    .post('/v1/estimates/time')
+    .set('Content-Type', 'application/json')
     .send({time : {code : 30, message : "message", fields : "fields", optional : {
       sub_prop1 : "normalValue",
       sub_prop2 : false,
@@ -422,7 +441,6 @@ describe('strict / no strict mode', function(){
     .expect(400, "Error: Parameter : time contains extra values.\n")
     .end(done);
   });
-
 });
 
 describe('Parameter that are not required', function(){

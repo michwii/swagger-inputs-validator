@@ -164,14 +164,23 @@ var getErrors = function(swaggerParameters, queryParameters, pathParameters, bod
         }
       break;
       case "body":
-        if(bodyParameters[parameter.name] === undefined && parameter.required == true){
+        //According to the swagger specification, I should enter here only once.
+        //In fact a body parameter can be specified only once for one end-point.
+
+        //We check first if parameter.name !== "" because if it is the case it means that the variables are passed directly
+        //within the body (no encapsulation) and we then need to check its integrity below with complexTypeChecking
+        if(parameter.name !== "" && bodyParameters[parameter.name] === undefined && parameter.required == true){
           errorsToReturn.push(new Error("Parameter : " + parameter.name + " is not specified."));
         }else{
           //If the parameter name is ""it means that the object will not be encapsuled and will be sent directly within the body playload
           //We now control the type. In body mode, types are complex
           var paramsToCheck = (parameter.name == "") ? bodyParameters : bodyParameters[parameter.name];
-          if(bodyParameters[parameter.name] && !complexTypeChecking.call(thisReference, paramsToCheck, parameter.schema)){
-            errorsToReturn.push(new Error("Parameter : " + parameter.name + " does not respect its type."));
+          if(!complexTypeChecking.call(thisReference, paramsToCheck, parameter.schema)){
+            if(parameter.name != ""){
+              errorsToReturn.push(new Error("Parameter : " + parameter.name + " does not respect its type."));
+            }else{
+              errorsToReturn.push(new Error("Parameter : Playload within the body does not respect its type."));
+            }
           }
         }
         break;
@@ -237,7 +246,6 @@ var getErrors = function(swaggerParameters, queryParameters, pathParameters, bod
 
     //If the parameters are sent directly within the body (not as form)
     if(swaggerParameters.length == 1 && swaggerParameters[0].in == "body"){
-      console.log("I enter here : " + swaggerParameters[0].schema)
       //We do a complex check
       var paramsToCheck = (swaggerParameters[0].name == "") ? bodyParameters : bodyParameters[swaggerParameters[0].name]
       if(isThereVariablesThatShouldNotBeSpecified.call(this, paramsToCheck, swaggerParameters[0].schema)){
@@ -278,7 +286,6 @@ var getObjectFromSwaggerReference = function (swaggerReference){
   @return true/false
 */
 var complexTypeChecking = function(objectToControl, swaggerModel){
-
   //Check if null values are allowed
   if(objectToControl === null){
     return objectToControl === null && this._allowNull;

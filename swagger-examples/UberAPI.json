@@ -424,6 +424,38 @@
                 }
             }
         },
+        "/orders": {
+            "post": {
+                "summary": "",
+                "description": "",
+                "parameters": [
+                    {
+                        "name": "",
+                        "in": "body",
+                        "schema": {
+                          "$ref": "#/definitions/Error"
+                        }
+                    }
+                ],
+                "tags": [
+                    "User"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/Activities"
+                        }
+                    },
+                    "default": {
+                        "description": "Unexpected error",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    }
+                }
+            }
+        },
         "/history": {
             "get": {
                 "summary": "User Activity",
