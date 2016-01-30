@@ -249,7 +249,11 @@ var getErrors = function(swaggerParameters, queryParameters, pathParameters, bod
       //We do a complex check
       var paramsToCheck = (swaggerParameters[0].name == "") ? bodyParameters : bodyParameters[swaggerParameters[0].name]
       if(isThereVariablesThatShouldNotBeSpecified.call(this, paramsToCheck, swaggerParameters[0].schema)){
-        errorsToReturn.push(new Error("Parameter : " + swaggerParameters[0].name + " contains extra values."));
+        if(swaggerParameters[0].name === ""){
+          errorsToReturn.push(new Error("Parameter : Playload wihtin the body contains extra values."));
+        }else{
+          errorsToReturn.push(new Error("Parameter : " + swaggerParameters[0].name + " contains extra values."));
+        }
       }
     }else{
       //Simple check as the others

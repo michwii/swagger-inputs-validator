@@ -305,6 +305,16 @@ describe('format testing', function(){
     .expect(400, "Error: Parameter : time does not respect its type.\n")
     .end(done);
   })
+
+  it('should return an HTTP 400 code when parameters in body do not respet their type (no encapsulation)', function(done){
+    server = createFakeServer(new swaggerInputValidator(swaggerFile).post("/orders"));
+    request.agent(server)
+    .post('/v1/orders')
+    .set('Content-Type', 'application/json')
+    .send({code : 'WrongType', message:"ok", fields: "ok"})
+    .expect(400, "Error: Parameter : Playload within the body does not respect its type.\n")
+    .end(done);
+  });
 });
 
 describe('AllowNull = true / AllowNull = false', function(){
@@ -341,6 +351,16 @@ describe('AllowNull = true / AllowNull = false', function(){
     .expect(400, "Error: Parameter : time does not respect its type.\n")
     .end(done);
   })
+
+  it('should return an HTTP 400 code when parameter in body contains null value and allowNull = false (no encapsulation))', function(done){
+    server = createFakeServer(new swaggerInputValidator(swaggerFile, {allowNull : false}).post("/orders"));
+    request.agent(server)
+    .post('/v1/orders')
+    .set('Content-Type', 'application/json')
+    .send({code : null, message:"ok", fields: "ok"})
+    .expect(400, "Error: Parameter : Playload within the body does not respect its type.\n")
+    .end(done);
+  });
 });
 
 describe('Handle enum properties', function(){
@@ -441,6 +461,16 @@ describe('strict / no strict mode', function(){
     .expect(400, "Error: Parameter : time contains extra values.\n")
     .end(done);
   });
+
+  it('should return an HTTP 400 code when parameters in body do not respet their type (no encapsulation)', function(done){
+    server = createFakeServer(new swaggerInputValidator(swaggerFile, {strict : true}).post("/orders"));
+    request.agent(server)
+    .post('/v1/orders')
+    .set('Content-Type', 'application/json')
+    .send({code : 10, message:"ok", fields: "ok", extraParameter : "ShouldNotWork"})
+    .expect(400, "Error: Parameter : Playload wihtin the body contains extra values.\n")
+    .end(done);
+  });
 });
 
 describe('Parameter that are not required', function(){
@@ -487,8 +517,17 @@ describe('Parameter that are not required', function(){
     .send({time : {code : 10, message : "message", fields : "fields"}})
     .expect(200, { success: 'If you can enter here, it means that the swagger middleware let you do so' })
     .end(done);
-  })
+  });
 
+  it('should return an HTTP 200 code when all parameters in body are provided exept those which are not required (no encapsulation)', function(done){
+    server = createFakeServer(new swaggerInputValidator(swaggerFile, {strict : true}).post("/orders"));
+    request.agent(server)
+    .post('/v1/orders')
+    .set('Content-Type', 'application/json')
+    .send({code : 10, message:"ok", fields: "ok"})
+    .expect(200, { success: 'If you can enter here, it means that the swagger middleware let you do so' })
+    .end(done);
+  });
 });
 
 
