@@ -393,11 +393,12 @@ describe('strict / no strict mode', function(){
     swaggerFile = require('./../swagger-examples/UberAPI.json');
     serverInStrictMode = createFakeServer(new swaggerInputValidator(swaggerFile, {strict: true}).get("/products"));
     serverNotInStrictMode = createFakeServer(new swaggerInputValidator(swaggerFile, {strict: false}).get("/products"));
+    serverInStrictModeAndWaitingForComplexObject = createFakeServer(new swaggerInputValidator(swaggerFile, {strict: true}).post("/estimates/time"));
   });
 
   it('should return an HTTP 200 code when extra is provided and strict = false', function(done){
     request.agent(serverNotInStrictMode)
-    .get('/v1/products?longitude=50&latitude=50&extraParameter=shouldNotWork')
+    .get('/v1/products?longitude=50&latitude=50&extraParameter=shouldWork')
     .expect(200, { success: 'If you can enter here, it means that the swagger middleware let you do so' })
     .end(done);
   });
@@ -406,6 +407,19 @@ describe('strict / no strict mode', function(){
     request.agent(serverInStrictMode)
     .get('/v1/products?longitude=50&latitude=50&extraParameter=shouldNotWork')
     .expect(400, "Error: Parameter : extraParameter should not be specified.\n")
+    .end(done);
+  });
+
+  it('should return an HTTP 400 code when extra parameters are provided in body and strict = true', function(done){
+    request.agent(serverInStrictModeAndWaitingForComplexObject)
+    .post('/v1/estimates/time')
+    .set('Content-Type', 'application/json')
+    .send({time : {code : 30, message : "message", fields : "fields", optional : {
+      sub_prop1 : "normalValue",
+      sub_prop2 : false,
+      extraParameter : "ShouldNotWork"
+    }}})
+    .expect(400, "Error: Parameter : time contains extra values.\n")
     .end(done);
   });
 

@@ -204,6 +204,25 @@ var getErrors = function(swaggerParameters, queryParameters, pathParameters, bod
       return false;
     }
 
+    var isThereVariablesThatShouldNotBeSpecified = function(bodyParameters, whereToSearch){
+      if(whereToSearch["$ref"]){
+        whereToSearch = getObjectFromSwaggerReference.call(this, whereToSearch['$ref']);
+      }
+      var variableToReturn = false;
+      var thisReference = this;
+      Object.keys(bodyParameters).forEach(function (variableName) {
+        if(typeof bodyParameters[variableName] == 'object' && Object.prototype.toString.call(bodyParameters[variableName]) != '[object Array]'){
+          variableToReturn = variableToReturn || isThereVariablesThatShouldNotBeSpecified.call(thisReference, bodyParameters[variableName], whereToSearch.properties[variableName])
+        }else{
+          if(whereToSearch.properties[variableName] === undefined){
+            variableToReturn = true;
+          }
+        }
+      });
+
+      return variableToReturn;
+    }
+
     Object.keys(queryParameters).forEach(function (variableName, index) {
         if(!isPresentWithinTheSwagger("query", variableName)){
           errorsToReturn.push(new Error("Parameter : " + variableName + " should not be specified."));
@@ -216,11 +235,22 @@ var getErrors = function(swaggerParameters, queryParameters, pathParameters, bod
         }
     });
 
-    Object.keys(bodyParameters).forEach(function (variableName, index) {
-        if(!isPresentWithinTheSwagger("formData", variableName)){
-          errorsToReturn.push(new Error("Parameter : " + variableName + " should not be specified."));
-        }
-    });
+    //If the parameters are sent directly within the body (not as form)
+    if(swaggerParameters.length == 1 && swaggerParameters[0].in == "body"){
+      console.log("I enter here : " + swaggerParameters[0].schema)
+      //We do a complex check
+      var paramsToCheck = (swaggerParameters[0].name == "") ? bodyParameters : bodyParameters[swaggerParameters[0].name]
+      if(isThereVariablesThatShouldNotBeSpecified.call(this, paramsToCheck, swaggerParameters[0].schema)){
+        errorsToReturn.push(new Error("Parameter : " + swaggerParameters[0].name + " contains extra values."));
+      }
+    }else{
+      //Simple check as the others
+      Object.keys(bodyParameters).forEach(function (variableName, index) {
+          if(!isPresentWithinTheSwagger("formData", variableName) ){
+            errorsToReturn.push(new Error("Parameter : " + variableName + " should not be specified."));
+          }
+      });
+    }
   }
   return errorsToReturn;
 };
