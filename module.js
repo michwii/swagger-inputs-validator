@@ -13,10 +13,18 @@ var SwaggerInputValidator = function(swagger, options){
       if(options && typeof options != 'object'){
         throw new Error("The parameter option in not an object");
       }else{
+
+        //Initialising default options values
+        this._strict = false;
+        this._allowNull = true;
+        this._autoConvert = true;
+
         if(options){
           var onError = options.onError;
           var strict = options.strict;
           var allowNull = options.allowNull;
+          var autoConvert = options.autoConvert;
+
           if(onError && typeof onError != 'function'){
             throw new Error("The parameter onError in not a function");
           }else{
@@ -33,6 +41,12 @@ var SwaggerInputValidator = function(swagger, options){
             throw new Error("The parameter allowNull in not a boolean");
           }else{
             this._allowNull = (allowNull) ? true : false;
+          }
+
+          if(autoConvert && typeof autoConvert != 'boolean'){
+            throw new Error("The parameter autoConvert in not a boolean");
+          }else{
+            this._autoConvert = (autoConvert) ? true : false;
           }
         }
 
@@ -249,7 +263,6 @@ var getErrors = function(swaggerParameters, queryParameters, pathParameters, bod
           }
         }
       });
-
       return variableToReturn;
     }
 
@@ -356,6 +369,8 @@ var complexTypeChecking = function(objectToControl, swaggerModel){
   @param parameterToControl : parameter sent by the user and that has to be controled against the swagger specification
   @param typeToEnforce : the swagger type to control
   The parameter that has been sent is string typed. (because coming from path or query or header)
+  It could have been converted to the correct type if the option autoConvert = true.
+  In both cases, this function will work (string types or real types)
   @return true / false
 */
 var simpleTypeChecking = function(parameterToControl, swaggerParameter){
@@ -389,7 +404,7 @@ var simpleTypeChecking = function(parameterToControl, swaggerParameter){
       return !isNaN(filterInt(parameterToControl));
     break;
     case 'boolean':
-      return parameterToControl === 'true' || parameterToControl === 'false'
+      return parameterToControl === 'true' || parameterToControl === 'false' || parameterToControl === false || parameterToControl === true
     break;
     case 'string' :
       //ToDo check its format

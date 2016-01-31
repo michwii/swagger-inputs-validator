@@ -69,6 +69,13 @@ describe('Wrong instanciations', function() {
     });
     done();
   });
+
+  it('should crash if bad option.autoConvert variable is passed', function(done){
+    assert.throws(function(){
+      new swaggerInputValidator(swaggerFile, {autoConvert:"wrong option.autoConvert parameter"});
+    });
+    done();
+  });
 });
 
 describe('good instanciation', function() {
@@ -93,6 +100,11 @@ describe('good instanciation', function() {
     done();
   });
 
+  it('should NOT crash if valid swagger is passed + valid autoConvert variable', function(done){
+    new swaggerInputValidator(swaggerFile, {autoConvert: false});
+    done();
+  });
+
   it('should NOT crash if valid swagger is passed + valid strict variable + valid onError function', function(done){
     new swaggerInputValidator(swaggerFile, {strict: false, onError: function(errors, req, res){}});
     done();
@@ -100,6 +112,11 @@ describe('good instanciation', function() {
 
   it('should NOT crash if valid swagger is passed + valid strict variable + valid onError function + valid allowNull', function(done){
     new swaggerInputValidator(swaggerFile, {strict: false, allowNull: true, onError: function(errors, req, res){}});
+    done();
+  });
+
+  it('should NOT crash if valid swagger is passed + valid strict variable + valid onError function + valid allowNull + valid autoConvert', function(done){
+    new swaggerInputValidator(swaggerFile, {strict: false, allowNull: true, autoConvert:false, onError: function(errors, req, res){}});
     done();
   });
 });
