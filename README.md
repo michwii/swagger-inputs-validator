@@ -27,11 +27,14 @@ $ npm install swagger-inputs-validator --save
 ```JavaScript
 var express = require('express');
 var SwaggerValidator = require('swagger-inputs-validator');
+var bodyParser = require('body-parser');
 var swaggerFile = require("./swagger.json");
 var app = express();
 
 var swaggerMiddleware = new SwaggerValidator(swaggerFile);
 
+app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.json());
 app.use(swaggerMiddleware.all());
 
 app.get('/products', function(req,res){
@@ -46,10 +49,14 @@ app.listen(80);
 ```JavaScript
 var express = require('express');
 var SwaggerValidator = require('swagger-inputs-validator');
+var bodyParser = require('body-parser');
 var swaggerFile = require("./swagger.json");
 var app = express();
 
 var swaggerMiddleware = new SwaggerValidator(swaggerFile);
+
+app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.json());
 
 app.get('/products', swaggerMiddleware.get('/products'), function(req,res){
   res.json({success: 'If you can enter here it seems that swagger validator let you get in'});
